@@ -1,0 +1,54 @@
+{% extends 'SandboxInitCmsBundle::layout.html.twig' %}
+
+{% block title %}{{ page.metaTitle }}{% endblock %}
+{% block body_tag %}<body class="page {{ page.metaTitle|lower }}">{% endblock body_tag %}
+
+{% block header %}
+{% if page.layoutBlock('background_image') |length > 0 %}
+    <div id="banner">
+        <div class="wrapper">
+            {% for layoutBlock in page.layoutBlock('background_image') %}
+                {{ render_initcms_block('SandboxInitCmsBundle:BackgroundImage:backgroundimage.html.twig', layoutBlock) }}
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if page.layoutBlock('header') |length > 0 %}
+    <header id="pagetitle">
+        {% for layoutBlock in page.layoutBlock('header') %}
+            {{ render_initcms_block('SandboxInitCmsBundle:Content:cms_block.html.twig', layoutBlock) }}
+        {% endfor %}
+    </header>
+    {% endif %}
+    <section id="main">
+        {% for layoutBlock in page.layoutBlock('left') %}
+            <div class="row-fluid">
+                {{ render_initcms_block('SandboxInitCmsBundle:Content:cms_block.html.twig', layoutBlock) }}
+            </div>
+        {% endfor %}
+        <div class="row-fluid">
+            {% if search_term is defined %}
+                <h2>{{ 'search.results_found' |transchoice(paginator.getTotalItemCount, {'%search_term%': search_term|join(' ')})|raw }}</h2>
+                {% for entity in paginator %}
+                    <a href="{{ url_prefix }}{{ entity.url }}">{{ entity.name | highlight(search_term, '<em class="highlight">\\1</em>') |raw }}</a>
+                    <p>{{ entity.content  | highlight(search_term, '<em class="highlight">\\1</em>') | excerpt('</em>', 200) |raw }}</p>
+                {% else %}
+                    {{ 'search.none_found_message'|trans({'%search_term%': search_term|join(' ')})|raw }}
+                {% endfor %}
+                {% if paginator|length > 0 %}
+                    <div class="navigation">
+                        {{ knp_pagination_render(paginator) }}
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </section>
+    <aside id="aside">
+        {% for layoutBlock in page.layoutBlock('right') %}
+            {{ render_initcms_block('SandboxInitCmsBundle:Content:cms_block.html.twig', layoutBlock) }}
+        {% endfor %}
+    </aside>
+{% endblock content %}

@@ -1,0 +1,4 @@
+Networking\ElasticSearchBundle\Entity\SearchableText:
+    properties:
+        id:
+            type: integer

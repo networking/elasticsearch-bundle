@@ -1,0 +1,46 @@
+parameters:
+    networking_elastic_search.provider.page_snapshot.class: Networking\ElasticSearchBundle\Provider\PageSnapshotProvider
+    networking_elastic_search.provider.media.class: Networking\ElasticSearchBundle\Provider\MediaProvider
+    networking_elastic_search.event_listener.listener.class: Networking\ElasticSearchBundle\EventListener\Listener
+    networking_elastic_search.component.configurator.class: Networking\ElasticSearchBundle\Component\Configurator
+
+services:
+    networking_elastic_search.configurator:
+        class: %networking_elastic_search.component.configurator.class%
+        arguments: [@service_container]
+        
+    networking_elastic_search.page_snapshot.listener:
+        class:  %networking_elastic_search.event_listener.listener.class%
+        arguments:
+          - 'Networking\InitCmsBundle\Entity\PageSnapshot'
+          - ['postPersist','postUpdate','postRemove','preRemove']
+          - 'id'
+        configurator: ['@networking_elastic_search.configurator', configurePageSnapshot]
+        tags:
+           - { name: doctrine.event_subscriber}
+
+    networking_elastic_search.media.listener:
+        class:  %networking_elastic_search.event_listener.listener.class%
+        calls:
+            - [setIsMedia,  [true]]
+        arguments:
+          - 'Networking\InitCmsBundle\Entity\Media'
+          - ['postPersist','postUpdate','postRemove','preRemove']
+          - 'id'
+        configurator: ['@networking_elastic_search.configurator', configureMedia]
+        tags:
+           - { name: doctrine.event_subscriber}
+
+    networking_elastic_search.search_provider.page:
+        class: %networking_elastic_search.provider.page_snapshot.class%
+        arguments: ['@doctrine.orm.entity_manager', @serializer]
+        configurator: ['@networking_elastic_search.configurator', configurePageSnapshot]
+        tags:
+            - {name: fos_elastica.provider, index: %elastic_search_index%, type: page }
+
+    networking_elastic_search.search_provider.media:
+        class: %networking_elastic_search.provider.media.class%
+        arguments: ['@doctrine.orm.entity_manager']
+        configurator: ['@networking_elastic_search.configurator', configureMedia]
+        tags:
+            - {name: fos_elastica.provider, index: %elastic_search_index%, type: media }

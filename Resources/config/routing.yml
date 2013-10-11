@@ -1,0 +1,17 @@
+networking_elastic_search_homepage:
+    pattern:  /hello/{name}
+    defaults: { _controller: NetworkingElasticSearchBundle:Default:index }
+
+
+site_search:
+    pattern:   /search/
+    defaults:  { _controller: NetworkingElasticSearchBundle:Default:search }
+    requirements:
+        _method:  HEAD|GET|POST
+
+
+site_search_de:
+    pattern:   /suche/
+    defaults:  { _controller: NetworkingElasticSearchBundle:Default:search }
+    requirements:
+        _method:  HEAD|GET|POST
