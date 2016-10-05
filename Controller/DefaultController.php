@@ -48,9 +48,6 @@ class DefaultController extends FrontendPageController
             return array_merge($params);
         }
 
-        //Get Contact Form
-//        $params = $this->processForms($params);
-
         if($params instanceof RedirectResponse){
             return $params;
         }
@@ -90,7 +87,6 @@ class DefaultController extends FrontendPageController
         $pagePaginator->setParam('search', $searchTerm);
         $pagePaginator->setUsedRoute('site_search_' . substr($request->getLocale(), 0, 2));
         $pagePaginator->setTemplate('NetworkingElasticSearchBundle:Pagination:twitter_bootstrap_pagination.html.twig');
-
 
         $params = array_merge(
             $params,

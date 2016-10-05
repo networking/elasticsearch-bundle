@@ -23,11 +23,11 @@
 
     {% if previous is defined %}
         <li>
-            <a href="{{ path(route, query|merge({(pageParameterName): previous})) }}">&laquo;&nbsp;{{ 'Previous'|trans }}</a>
+            <a href="{{ path(route, query|merge({(pageParameterName): previous})) }}">&laquo;&nbsp;{{ 'search.previous'|trans({}, 'networkingElasticSearch') }}</a>
         </li>
     {% else %}
         <li class="disabled">
-            <a>&laquo;&nbsp;{{ 'Previous'|trans }}</a>
+            <a>&laquo;&nbsp;{{ 'search.previous'|trans({}, 'networkingElasticSearch') }}</a>
         </li>
     {% endif %}
 
@@ -78,11 +78,11 @@
 
     {% if next is defined %}
         <li>
-            <a href="{{ path(route, query|merge({(pageParameterName): next})) }}">{{ 'Next'|trans }}&nbsp;&raquo;</a>
+            <a href="{{ path(route, query|merge({(pageParameterName): next})) }}">{{ 'search.next'|trans({}, 'networkingElasticSearch') }}&nbsp;&raquo;</a>
         </li>
     {% else %}
         <li class="disabled">
-            <a>{{ 'Next'|trans }}&nbsp;&raquo;</a>
+            <a>{{{ 'search.next'|trans({}, 'networkingElasticSearch') }}&nbsp;&raquo;</a>
         </li>
     {% endif %}
     </ul>

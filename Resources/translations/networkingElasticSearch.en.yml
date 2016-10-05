@@ -1,0 +1,6 @@
+search:
+    placeholder: Search
+    title: Search results
+    results_found: "{0}The search for '%search_term%' returned no result|{1}The search for '%search_term%' returned one result. '|]1,Inf]Showing results %item-num-from%-%item-num-to% from %search_count% matches for the search '%search_term%'"
+    previous: Previous
+    next: Next

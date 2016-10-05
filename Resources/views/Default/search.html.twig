@@ -10,9 +10,8 @@
 {% endif %}
 
 {% if search_term is defined %}
-    <h1>Such-Resultat</h1>
-
-    <p class="ohne-einzug">{{ 'search.results_found' |transchoice(paginator.getTotalItemCount, {'%search_term%': search_term|join(' ')}) }}</p>
+    <h1>{{ 'search.title'|trans( {}, 'networkingElasticSearch') }}</h1>
+    <p class="ohne-einzug">{{ 'search.results_found'|transchoice(paginator.getTotalItemCount, {'%search_term%': search_term|join(' '), '%search_count%':paginator.getTotalItemCount,'%item-num-from%':paginator.getPaginationData.firstItemNumber,'%item-num-to%':paginator.getPaginationData.lastItemNumber}, 'networkingElasticSearch') }}</p>
     <ul class="searchresult">
         {% for entity in paginator %}
             <li>
@@ -50,7 +49,7 @@
 
     {% endif %}
 {% else %}
-    <p>{{ 'search.results_found' |transchoice(0) }} </p>
+    <p>{{ 'search.results_found'|transchoice(0, {'%search_term%': search_term|join(' ')},'networkingElasticSearch' ) }} </p>
 {% endif %}
 
 {% endblock content_row %}
