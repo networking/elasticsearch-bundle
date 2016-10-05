@@ -5,31 +5,30 @@ parameters:
     networking_elastic_search.component.configurator.class: Networking\ElasticSearchBundle\Component\Configurator
 
 services:
-    networking_elastic_search.configurator:
-        class: %networking_elastic_search.component.configurator.class%
-        arguments: [@service_container]
-        
-    networking_elastic_search.page_snapshot.listener:
+    networking_elastic_search.factory:
+        class: Networking\ElasticSearchBundle\Factory\ORMListenerFactory
+        arguments: [@service_container, @fos_elastica.indexable]
+
+
+    networking_elastic_search.page.listener:
         class:  %networking_elastic_search.event_listener.listener.class%
-        arguments:
-          - 'Networking\InitCmsBundle\Entity\PageSnapshot'
-          - ['postPersist','postUpdate','postRemove','preRemove']
-          - 'id'
-        configurator: ['@networking_elastic_search.configurator', configurePageSnapshot]
+        factory: ['@networking_elastic_search.factory', createPageListener]
         tags:
-           - { name: doctrine.event_subscriber}
+            - { name: doctrine.event_listener, event: postPersist }
+            - { name: doctrine.event_listener, event: postRemove }
+
 
     networking_elastic_search.media.listener:
         class:  %networking_elastic_search.event_listener.listener.class%
-        calls:
-            - [setIsMedia,  [true]]
-        arguments:
-          - 'Networking\InitCmsBundle\Entity\Media'
-          - ['postPersist','postUpdate','postRemove','preRemove']
-          - 'id'
-        configurator: ['@networking_elastic_search.configurator', configureMedia]
+        factory: ['@networking_elastic_search.factory', createMediaListener]
         tags:
-           - { name: doctrine.event_subscriber}
+            - { name: doctrine.event_listener, event: postPersist }
+            - { name: doctrine.event_listener, event: postRemove }
+
+    networking_elastic_search.configurator:
+        class: %networking_elastic_search.component.configurator.class%
+        arguments: [@service_container]
+
 
     networking_elastic_search.search_provider.page:
         class: %networking_elastic_search.provider.page_snapshot.class%
@@ -44,3 +43,4 @@ services:
         configurator: ['@networking_elastic_search.configurator', configureMedia]
         tags:
             - {name: fos_elastica.provider, index: %elastic_search_index%, type: media }
+

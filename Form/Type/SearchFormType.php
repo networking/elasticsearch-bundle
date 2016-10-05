@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the billag package.
+ * This file is part of the forel package.
  *
  * (c) net working AG <info@networking.ch>
  *
@@ -13,8 +13,6 @@ namespace Networking\ElasticSearchBundle\Form\Type;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Mopa\Bundle\BootstrapBundle\Navbar\NavbarFormInterface;
-use Symfony\Component\OptionsResolver\OptionsResolverInterface;
-
 /**
  * @author Yorkie Chadwick <y.chadwick@networking.ch>
  */
@@ -23,8 +21,8 @@ class SearchFormType extends AbstractType implements NavbarFormInterface
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $searchTerm = '';
-        if(array_key_exists('search', $_GET)){
-            $searchTerm = $_GET['search'];
+        if(array_key_exists('networking_elastic_search', $_REQUEST)){
+            $searchTerm = $_REQUEST['networking_elastic_search']['search'];
         }
         $builder
             ->setAttribute('render_fieldset', false)
@@ -42,7 +40,7 @@ class SearchFormType extends AbstractType implements NavbarFormInterface
     }
     public function getName()
     {
-        return '';
+        return 'networking_elastic_search';
     }
     /**
      * To implement NavbarFormTypeInterface

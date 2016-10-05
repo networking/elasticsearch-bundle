@@ -2,14 +2,21 @@
 
 namespace Networking\ElasticSearchBundle\Controller;
 
+use Elastica\Aggregation\Filter;
+use Elastica\Index;
+use Elastica\Query;
 use Networking\ElasticSearchBundle\Paginator\RawPaginatorAdapter;
 use Networking\InitCmsBundle\Controller\FrontendPageController;
-use Networking\InitCmsBundle\Entity\Page;
+use Networking\InitCmsBundle\Model\Page;
 use Networking\InitCmsBundle\Entity\PageSnapshot;
+use Networking\InitCmsBundle\Model\PageInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Knp\Component\Pager\Paginator;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
+
 
 class DefaultController extends FrontendPageController
 {
@@ -18,39 +25,60 @@ class DefaultController extends FrontendPageController
      * @Route("/search/", name="site_search")
      * @Template
      */
-    public function searchAction()
+    public function searchAction(Request $request)
     {
         /** @var $page Page */
-        $page = $this->getRequest()->get('_content');
+        $page = $request->get('_content');
 
         if ($page instanceof PageSnapshot) {
-            $params = $this->liveAction($this->getRequest());
-        } else {
-            $params = $this->indexAction($this->getRequest());
+
+            /** @var $page PageSnapshot */
+            $page = $this->get('serializer')->deserialize(
+                $page->getVersionedData(),
+                $this->container->getParameter('networking_init_cms.admin.page.class'),
+                'json'
+            );
         }
 
-        $searchTerm = $this->getRequest()->query->get('search');
+        $searchTerm = $request->query->get('search');
+
+        $params = array('paginator' => array(), 'page' => $page, 'admin_pool' => $this->getAdminPool());
 
         if (!$searchTerm) {
-            return array_merge($params,array('paginator' => array(), 'search_term' => $searchTerm));
+            return array_merge($params);
         }
 
-        /** @var $finder \Elastica_Index */
+        //Get Contact Form
+//        $params = $this->processForms($params);
+
+        if($params instanceof RedirectResponse){
+            return $params;
+        }
+
+        /** @var $finder Index */
         $indexName = $this->container->getParameter('elastic_search_index');
-        $finder = $this->get('fos_elastica.index.'.$indexName);
+        $finder = $this->get('fos_elastica.index.' . $indexName);
 
-        $query = new \Elastica_Query_QueryString($searchTerm);
-        $query->setFields(array('name', 'content', 'content.content'));
-        $query->setAnalyzeWildcard(true);
-        $query->setPhraseSlop(40);
-        $query->setUseDisMax(true);
+        $keywordQuery = new Query\QueryString($searchTerm);
+        $keywordQuery->setFields(['content', 'name', 'file.content']);
+        $keywordQuery->setAnalyzeWildcard(true);
+        $keywordQuery->setPhraseSlop(40);
+        $keywordQuery->setUseDisMax(true);
 
-        $query = new \Elastica_Query($query);
+        $query = new Query($keywordQuery);
 
-        $localeQuery = new \Elastica_Query_Text();
-        $localeQuery->setFieldQuery('locale', $this->getRequest()->getLocale());
-        $query->setFilter(new \Elastica_Filter_Query($localeQuery));
+        $localeQuery = new Query\QueryString($request->getLocale());
+        $localeQuery->setFields(array('locale'));
+        $query->setPostFilter($localeQuery);
+        $request->query->set('search', $searchTerm);
 
+        $query->setHighlight(array(
+            'fields' => array(
+                'file.content' => new \stdClass(),
+                'content' => new \stdClass(),
+                'name' => new \stdClass()
+            )
+        ));
 
         /** @var $paginator Paginator */
         $paginator = $this->get('knp_paginator');
@@ -60,7 +88,7 @@ class DefaultController extends FrontendPageController
         /** @var \Knp\Bundle\PaginatorBundle\Pagination\SlidingPagination $pagePaginator */
         $pagePaginator = $paginator->paginate($paginatorAdaptor, $currentPage);
         $pagePaginator->setParam('search', $searchTerm);
-        $pagePaginator->setUsedRoute('site_search_de');
+        $pagePaginator->setUsedRoute('site_search_' . substr($request->getLocale(), 0, 2));
         $pagePaginator->setTemplate('NetworkingElasticSearchBundle:Pagination:twitter_bootstrap_pagination.html.twig');
 
 
@@ -69,10 +97,12 @@ class DefaultController extends FrontendPageController
             array(
                 'paginator' => $pagePaginator,
                 'search_term' => explode(' ', trim($searchTerm)),
-                'url_prefix' =>  $this->get('kernel')->getEnvironment() == 'dev' ? '/app_dev.php' : ''
+                'url_prefix' => $this->get('kernel')->getEnvironment() == 'dev' ? '/app_dev.php' : ''
             )
         );
 
         return $params;
     }
+
+
 }

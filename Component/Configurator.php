@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the billag package.
+ * This file is part of the forel package.
  *
  * (c) net working AG <info@networking.ch>
  *
@@ -12,11 +12,12 @@
 namespace Networking\ElasticSearchBundle\Component;
 
 use FOS\ElasticaBundle\Provider\ProviderInterface;
+use FOS\ElasticaBundle\Transformer\ModelToElasticaAutoTransformer;
 use Networking\ElasticSearchBundle\Transformer\NewsToElasticaTransformer;
 use Networking\ElasticSearchBundle\Transformer\PageSnapshotToElasticaTransformer;
 use Networking\ElasticSearchBundle\Transformer\MediaToElasticaTransformer;
 use FOS\ElasticaBundle\Persister\ObjectPersister;
-use Sandbox\InitCmsBundle\Entity\News;
+use Application\Networking\InitCmsBundle\Entity\News;
 use Symfony\Component\DependencyInjection\Container;
 use Networking\ElasticSearchBundle\Component\ObjectPersisterAwareInterface;
 
@@ -43,7 +44,16 @@ class Configurator
 
         $mapping = $type->getMapping();
 
-        $fields = $mapping[$type->getName()]['properties'];
+        if(isset($mapping[$type->getName()]['properties'])){
+
+            $fields = $mapping[$type->getName()]['properties'];
+
+        }
+        else{
+
+            $fields = $mapping[$indexName]['mappings'][$type->getName()]['properties'];
+
+        }
 
         $persister = new ObjectPersister($type, $transformer, 'Networking\InitCmsBundle\Entity\PageSnapshot', $fields);
 
@@ -59,10 +69,22 @@ class Configurator
         $type = $this->container->get(sprintf('fos_elastica.index.%s.media', $indexName));
 
         $mapping = $type->getMapping();
-        $fields = $mapping[$type->getName()]['properties'];
 
+
+        if(isset($mapping[$type->getName()]['properties'])){
+
+            $fields = $mapping[$type->getName()]['properties'];
+
+        }
+        else{
+
+            $fields = $mapping[$indexName]['mappings'][$type->getName()]['properties'];
+
+        }
         $persister = new ObjectPersister($type, $transformer, 'Networking\InitCmsBundle\Entity\Media', $fields);
 
         $object->setObjectPersister($persister);
     }
+
+
 }

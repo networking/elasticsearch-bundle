@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the billag package.
+ * This file is part of the forel package.
  *
  * (c) net working AG <info@networking.ch>
  *
@@ -12,6 +12,7 @@
 namespace Networking\ElasticSearchBundle\Paginator;
 
 use FOS\ElasticaBundle\Paginator\RawPartialResults;
+use Enzim\Lib\TikaWrapper\TikaWrapper;
 
 /**
  * @author Yorkie Chadwick <y.chadwick@networking.ch>
@@ -23,18 +24,15 @@ class RawResults extends RawPartialResults
      */
     public function toArray()
     {
+        /** @var \Elastica\Result $hit */
         return array_map(function ($result) {
 
-            $highlights = $result->getHighlights();
             $source = $result->getSource();
+            $source['highlights'] = $result->getHighlights();
 
-//            foreach($source as $key =>  $field){
-//                if(array_key_exists($key, $highlights)){
-//                    $source[$key] = $highlights[$key][0];
-//                }
-//            }
-
-
+            if(array_key_exists('file', $source) && !array_key_exists('file.content', $source['highlights'])){
+                $source['file']['content'] = TikaWrapper::getText($source['file']['_name']);
+            }
             return $source;
 
         }, $this->resultSet->getResults());

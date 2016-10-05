@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the billag package.
+ * This file is part of the forel package.
  *
  * (c) net working AG <info@networking.ch>
  *
@@ -13,11 +13,12 @@ namespace Networking\ElasticSearchBundle\Provider;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\QueryBuilder;
-use Elastica_Type;
+use Elastica\Exception\Bulk\ResponseException as BulkResponseException;
 use Networking\ElasticSearchBundle\Component\ObjectPersisterAwareInterface;
 use FOS\ElasticaBundle\Provider\ProviderInterface;
 use FOS\ElasticaBundle\Exception\InvalidArgumentTypeException;
 use FOS\ElasticaBundle\Persister\ObjectPersisterInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * @author Yorkie Chadwick <y.chadwick@networking.ch>
@@ -39,12 +40,16 @@ class MediaProvider implements ProviderInterface, ObjectPersisterAwareInterface
      */
     protected $options;
 
+    /**
+     * @var OptionsResolver
+     */
+    protected $resolver;
+
     public function __construct(EntityManager $em, array $options = array())
     {
         $this->em = $em;
-        $this->options = array_merge(array(
-            'batch_size' => 100,
-        ), $options);
+        $this->resolver = new OptionsResolver();
+        $this->configureOptions();
     }
 
     public function setObjectPersister(ObjectPersisterInterface $objectPersister)
@@ -57,31 +62,46 @@ class MediaProvider implements ProviderInterface, ObjectPersisterAwareInterface
      *
      * @param \Closure $loggerClosure
      */
-    public function populate(\Closure $loggerClosure = null)
+    public function populate(\Closure $loggerClosure = null, array $options = array())
     {
+        $options = $this->resolver->resolve($options);
         $queryBuilder = $this->createQueryBuilder();
         $nbObjects = $this->countObjects($queryBuilder);
-        $stepStartTime = 0;
-        for ($offset = 0; $offset < $nbObjects; $offset += $this->options['batch_size']) {
-            if ($loggerClosure) {
-                $stepStartTime = microtime(true);
-            }
+        $offset = $options['offset'];
+
+        for (; $offset < $nbObjects; $offset += $options['batch_size']) {
+            $sliceSize = $options['batch_size'];
+
+            try{
             $objects = $this->fetchSlice($queryBuilder, $this->options['batch_size'], $offset);
 
-            $this->objectPersister->insertMany($objects);
+                $sliceSize = count($objects);
 
-            if ($loggerClosure) {
-                $stepNbObjects = count($objects);
-                $stepCount = $stepNbObjects + $offset;
-                $percentComplete = 100 * $stepCount / $nbObjects;
-                $objectsPerSecond = $stepNbObjects / (microtime(true) - $stepStartTime);
-                $loggerClosure(sprintf('%0.1f%% (%d/%d), %d objects/s', $percentComplete, $stepCount, $nbObjects, $objectsPerSecond));
+                if($sliceSize > 0){
+                    $this->objectPersister->insertMany($objects);
+                }
+            } catch (BulkResponseException $e) {
+                if (!$options['ignore_errors']) {
+                    throw $e;
+                }
+
+                if (null !== $loggerClosure) {
+                    $loggerClosure(
+                        $options['batch_size'],
+                        $nbObjects,
+                        sprintf('<error>%s</error>', $e->getMessage())
+                    );
+                }
+            }
+
+            if (null !== $loggerClosure) {
+                $loggerClosure($sliceSize, $nbObjects);
             }
         }
     }
 
     /**
-     * @see FOS\ElasticaBundle\Doctrine\AbstractProvider::countObjects()
+     * @see \FOS\ElasticaBundle\Provider\AbstractProvider::countObjects()
      */
     protected function countObjects($queryBuilder)
     {
@@ -105,7 +125,7 @@ class MediaProvider implements ProviderInterface, ObjectPersisterAwareInterface
     }
 
     /**
-     * @see FOS\ElasticaBundle\Doctrine\AbstractProvider::fetchSlice()
+     * @see \FOS\ElasticaBundle\Provider\AbstractProvider::fetchSlice()
      */
     protected function fetchSlice($queryBuilder, $limit, $offset)
     {
@@ -121,16 +141,34 @@ class MediaProvider implements ProviderInterface, ObjectPersisterAwareInterface
     }
 
     /**
-     * @see FOS\ElasticaBundle\Doctrine\AbstractProvider::createQueryBuilder()
+     * @see \FOS\ElasticaBundle\Provider\AbstractProvider::createQueryBuilder()
      */
     protected function createQueryBuilder()
     {
         $repository = $this->em->getRepository('NetworkingInitCmsBundle:Media');
         $qb = $repository->createQueryBuilder('a');
         $qb->where('a.providerName = :provider_name');
-        $qb->andWhere('a.enabled = 1');
         $qb->setParameter(':provider_name', 'sonata.media.provider.file');
         return $qb;
 
+    }
+
+
+    /**
+     * Configures the option resolver.
+     */
+    protected function configureOptions()
+    {
+        $this->resolver->setDefaults(array(
+            'reset' => true,
+            'batch_size' => 100,
+            'skip_indexable_check' => false,
+            'clear_object_manager' => true,
+            'debug_logging'        => false,
+            'ignore_errors'        => false,
+            'offset'               => 0,
+            'query_builder_method' => 'createQueryBuilder',
+            'sleep'                => 0
+        ));
     }
 }

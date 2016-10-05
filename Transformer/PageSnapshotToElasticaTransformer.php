@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the billag package.
+ * This file is part of the forel package.
  *
  * (c) net working AG <info@networking.ch>
  *
@@ -11,10 +11,12 @@
 
 namespace Networking\ElasticSearchBundle\Transformer;
 
+use Elastica\Document;
 use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
 use JMS\Serializer\Serializer;
 use Networking\InitCmsBundle\Entity\PageSnapshot;
-use Symfony\Component\Form\Util\PropertyPath;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyPath;
 
 /**
  * @author Yorkie Chadwick <y.chadwick@networking.ch>
@@ -53,49 +55,70 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
      * @param PageSnapshot $object the object to convert
      * @param array $fields the keys we want to have in the returned array
      *
-     * @return \Elastica_Document
+     * @return Document
      **/
     public function transform($object, array $fields)
     {
 
         $content = array();
-        /** @var $page  \Networking\InitCmsBundle\Entity\Page */
+        /** @var $page  \Application\Networking\InitCmsBundle\Entity\Page */
         $page = $this->serializer->deserialize(
             $object->getVersionedData(),
-            'Networking\InitCmsBundle\Entity\Page',
+            'Application\Networking\InitCmsBundle\Entity\Page',
             'json'
         );
 
         foreach ($page->getLayoutBlock() as $layoutBlock) {
+
+
+
             $contentItem = $this->serializer->deserialize(
                 $layoutBlock->getSnapshotContent(),
                 $layoutBlock->getClassType(),
                 'json'
             );
 
-            if (is_object($contentItem) && method_exists($contentItem, 'getSearchableContent')) {
-                $content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
+
+
+            //var_dump($contentItem);
+
+            if (is_object($contentItem) && method_exists($contentItem, 'getSortableTextBlocks')) {
+
+                $sortableTextBlocks = $contentItem->getSortableTextBlocks();
+                foreach ($sortableTextBlocks as $block) {
+                    $text = strip_tags( $block->getText());
+                    $content[] = html_entity_decode($text, null, 'UTF-8');
+                    //echo $block->getText();
+                }
+
+
+                //$content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
             }
         }
 
         $identifierProperty = new PropertyPath($this->options['identifier']);
-        $identifier = $identifierProperty->getValue($page);
+
+        $propertyAccessor = PropertyAccess::createPropertyAccessor();
+        $identifier = $propertyAccessor->getValue($page, $identifierProperty);
 
 
-        $document = new \Elastica_Document($identifier);
+        $document = new Document($identifier);
 
         foreach ($fields as $key => $mapping) {
             $property = new PropertyPath($key);
             if (!empty($mapping['_parent']) && $mapping['_parent'] !== '~') {
-                $parent = $property->getValue($page);
+
+                $parent = $propertyAccessor->getValue($page, $property);
+
                 $identifierProperty = new PropertyPath($mapping['_parent']['identifier']);
-                $document->setParent($identifierProperty->getValue($parent));
+                $document->setParent($propertyAccessor->getValue($parent, $identifierProperty));
+
             } else if (isset($mapping['type']) && in_array($mapping['type'], array('nested', 'object'))) {
                 $submapping = $mapping['properties'];
-                $subcollection = $property->getValue($page);
-                $document->add($key, $this->transformNested($subcollection, $submapping, $document));
+                $subcollection = $propertyAccessor->getValue($page, $property);
+                $document->set($key, $this->transformNested($subcollection, $submapping, $document));
             } else if (isset($mapping['type']) && $mapping['type'] == 'attachment') {
-                $attachment = $property->getValue($page);
+                $attachment = $property->getElement($page);
                 if ($attachment instanceof \SplFileInfo) {
                     $document->addFile($key, $attachment->getPathName());
                 } else {
@@ -117,13 +140,13 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
                         $value = 'Page';
                         break;
                     default:
-                        $value = $property->getValue($page);
+                        $value = $propertyAccessor->getValue($page, $property);
                         break;
                 }
-                $document->add($key, $this->normalizeValue($value));
+                $document->set($key, $this->normalizeValue($value));
             }
         }
-        $document->add('type', 'Page');
+        $document->set('type', 'Page');
 
         return $document;
     }
@@ -133,7 +156,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
      *
      * @param array $objects    the object to convert
      * @param array $fields     the keys we want to have in the returned array
-     * @param \Elastica_Document $parent the parent document
+     * @param Document $parent the parent document
      *
      * @return array
      */

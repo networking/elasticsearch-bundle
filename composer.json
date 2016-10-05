@@ -1,0 +1,33 @@
+{
+    "name": "networking/elasticsearch-bundle",
+    "description": "This Bundle adds ",
+    "keywords": ["symfony", "elasticsearch", "search"],
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Yorkie Chadwick",
+            "homepage": "http://web.networking.ch",
+            "email": "y.chadwick@networking.ch"
+        }
+    ],
+    "require": {
+        "php": ">=5.4",
+        "symfony/symfony": "2.8.*",
+        "sensio/framework-extra-bundle": "^3.0.2",
+        "doctrine/orm": "~2.2,>=2.2.3,<2.5",
+        "doctrine/doctrine-bundle": "~1.4",
+        "friendsofsymfony/elastica-bundle": "dev-master",
+        "networking/init-cms-bundle": "^2.8.*",
+        "enzim/tika-wrapper": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {"Networking\\ElasticSearchBundle\\": ""}
+    },
+    "minimum-stability": "dev",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.7.x-dev"
+        }
+    }
+}

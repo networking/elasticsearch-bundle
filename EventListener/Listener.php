@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the billag package.
+ * This file is part of the forel package.
  *
  * (c) net working AG <info@networking.ch>
  *
@@ -15,52 +15,84 @@ namespace Networking\ElasticSearchBundle\EventListener;
 /**
  * @author Yorkie Chadwick <y.chadwick@networking.ch>
  */
-use FOS\ElasticaBundle\Doctrine\ORM\Listener as ORMListener;
+use FOS\ElasticaBundle\Doctrine\Listener as ORMListener;
 use FOS\ElasticaBundle\Persister\ObjectPersisterInterface;
-use Networking\ElasticSearchBundle\Component\ObjectPersisterAwareInterface;
-use Doctrine\ORM\Event\LifecycleEventArgs;
+use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Networking\InitCmsBundle\Entity\PageSnapshot;
-use Sandbox\InitCmsBundle\Entity\News;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use FOS\ElasticaBundle\Provider\IndexableInterface;
+use Psr\Log\LoggerInterface;
 
-class Listener extends ORMListener implements ObjectPersisterAwareInterface
+class Listener extends ORMListener
 {
     protected $isMedia = false;
 
     /**
-     * @param ObjectPersisterInterface $objectClass
-     * @param string $esIdentifierField
+     * @var ContainerInterface
      */
-    public function __construct($objectClass, array $events, $esIdentifierField = 'id')
-    {
-        $this->objectClass = $objectClass;
-        $this->events = $events;
-        $this->esIdentifierField = $esIdentifierField;
+    protected $container;
 
-        $this->setIsIndexableCallback(array($this, 'isMediaActive'));
+    /**
+     * @var IndexableInterface
+     */
+    private $indexable;
+
+    /**
+     * Configuration for the listener.
+     *
+     * @var array
+     */
+    private $config;
+
+
+    /**
+     * Constructor.
+     *
+     * @param ObjectPersisterInterface $objectPersister
+     * @param IndexableInterface       $indexable
+     * @param array                    $config
+     * @param LoggerInterface          $logger
+     */
+    public function __construct(
+        ObjectPersisterInterface $objectPersister,
+        IndexableInterface $indexable,
+        array $config = array(),
+        LoggerInterface $logger = null
+    )
+    {
+        $this->indexable = $indexable;
+        $this->config = $config;
+        parent::__construct($objectPersister, $indexable, $config, $logger);
+
     }
 
     public function postPersist(LifecycleEventArgs $eventArgs)
     {
-        $entity = $eventArgs->getEntity();
+        $entity = $eventArgs->getObject();
 
-        if ($entity instanceof $this->objectClass && $this->isObjectIndexable($entity)) {
+        if ($this->objectPersister->handlesObject($entity) && $this->isObjectIndexable($entity)) {
 
             if ($entity instanceof PageSnapshot) {
                 $this->objectPersister->deleteById($entity->getPage()->getId());
+                $this->objectPersister->insertOne($entity);
+            } else {
+                $this->objectPersister->insertOne($entity);
             }
 
-            $this->objectPersister->insertOne($entity);
+
         }
     }
 
     public function postRemove(LifecycleEventArgs $eventArgs)
     {
-        $entity = $eventArgs->getEntity();
+        $entity = $eventArgs->getObject();
 
-        if ($entity instanceof $this->objectClass && $this->isObjectIndexable($entity)) {
+        if ($this->objectPersister->handlesObject($entity) && $this->isObjectIndexable($entity)) {
 
             if ($entity instanceof PageSnapshot) {
                 $this->objectPersister->deleteById($entity->getPage()->getId());
+            } elseif ($this->isMedia) {
+                $this->objectPersister->deleteById($entity->getId());
             }
         }
     }
@@ -70,13 +102,6 @@ class Listener extends ORMListener implements ObjectPersisterAwareInterface
         $this->isMedia = $isMedia;
     }
 
-    /**
-     * @param ObjectPersisterInterface $objectPersister
-     */
-    public function setObjectPersister(ObjectPersisterInterface $objectPersister)
-    {
-        $this->objectPersister = $objectPersister;
-    }
 
     public function isMediaActive($object)
     {
@@ -89,5 +114,26 @@ class Listener extends ORMListener implements ObjectPersisterAwareInterface
         }
 
         return true;
+    }
+
+
+    /**
+     * Checks if the object is indexable or not.
+     *
+     * @param object $object
+     *
+     * @return bool
+     */
+    private function isObjectIndexable($object)
+    {
+        if($this->isMedia){
+            return $this->isMediaActive($object);
+        }
+
+        return $this->indexable->isObjectIndexable(
+            $this->config['indexName'],
+            $this->config['typeName'],
+            $object
+        );
     }
 }

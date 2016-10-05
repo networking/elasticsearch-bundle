@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the billag package.
+ * This file is part of the forel package.
  *
  * (c) net working AG <info@networking.ch>
  *
@@ -11,10 +11,12 @@
 
 namespace Networking\ElasticSearchBundle\Transformer;
 
+use Elastica\Document;
 use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
 use Symfony\Component\DependencyInjection\Container;
 use Networking\InitCmsBundle\Entity\Media;
-use Symfony\Component\Form\Util\PropertyPath;
+//use Symfony\Component\Form\Util\PropertyPath;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 /**
  * @author Yorkie Chadwick <y.chadwick@networking.ch>
@@ -52,31 +54,36 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
      * @param Media $object the object to convert
      * @param array $fields the keys we want to have in the returned array
      *
-     * @return \Elastica_Document
+     * @return Document
      **/
     public function transform($object, array $fields)
     {
         $content = array();
 
 
-        $identifierProperty = new PropertyPath($this->options['identifier']);
-        $identifier = $identifierProperty->getValue($object);
-        $document = new \Elastica_Document($identifier);
+//        $identifierProperty = new PropertyPath($this->options['identifier']);
+//        $identifier = $identifierProperty->getValue($object);
+
+        $propertyAccessor = new PropertyAccessor();
+        $identifier =  $propertyAccessor->getValue($object, $this->options['identifier']);
+        $document = new Document($identifier);
 
         $provider = $this->container->get($object->getProviderName());
 
         foreach ($fields as $key => $mapping) {
             $value = null;
 
-            $property = new PropertyPath($key);
             if (!empty($mapping['_parent']) && $mapping['_parent'] !== '~') {
-                $parent = $property->getValue($object);
-                $identifierProperty = new PropertyPath($mapping['_parent']['identifier']);
-                $document->setParent($identifierProperty->getValue($parent));
+                $parent = $propertyAccessor->getValue($object, $key); //$property->getValue($object);
+
+                $identifierProperty = new PropertyAccessor();
+                $document->setParent($identifierProperty->getValue($parent, $mapping['_parent']['identifier']));
+                //$identifierProperty = new PropertyPath($mapping['_parent']['identifier']);
+                //$document->setParent($identifierProperty->getValue($parent));
             } else if (isset($mapping['type']) && in_array($mapping['type'], array('nested', 'object'))) {
                 $submapping = $mapping['properties'];
-                $subcollection = $property->getValue($object);
-                $document->add($key, $this->transformNested($subcollection, $submapping, $document));
+                $subcollection = $propertyAccessor->getValue($object, $key);
+                $document->set($key, $this->transformNested($subcollection, $submapping, $document));
             } else if (isset($mapping['type']) && $mapping['type'] == 'attachment') {
 
                 $path = $this->container->get('kernel')->getRootDir() . '/../web';
@@ -92,11 +99,6 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
                         $path = $this->container->get('kernel')->getRootDir() . '/../web';
                         $file = $provider->generatePublicUrl($object, 'reference');
                         $value = PdfDocumentExtractor::extract($path . $file);
-
-                        if($value){
-                            $value = iconv(mb_detect_encoding($value, null, true), "UTF-8//TRANSLIT", $value);
-                        }
-
                         break;
                     case 'locale':
                         $value = $object->getLocale();
@@ -108,16 +110,17 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
                         $value = '';
                         break;
                     case 'type':
-                        $document->add('type', 'PDF');
+                        $document->set('type', 'PDF');
                         break;
                     default:
-                        $value = $property->getValue($object);
+                        $value = $propertyAccessor->getValue($object, $key);  //$property->getValue($object);
                         break;
                 }
-                $document->add($key, $this->normalizeValue($value));
+                $document->set($key, $this->normalizeValue($value));
             }
         }
-        $document->add('type', 'PDF');
+
+        $document->set('type', 'PDF');
         return $document;
     }
 
@@ -126,7 +129,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
      *
      * @param array $objects    the object to convert
      * @param array $fields     the keys we want to have in the returned array
-     * @param \Elastica_Document $parent the parent document
+     * @param Document $parent the parent document
      *
      * @return array
      */
@@ -140,7 +143,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
             }
 
             return $documents;
-        } elseif (null !== $objects) {
+        } elseif (null !== $objects && $objects instanceof Media) {
             $document = $this->transform($objects, $fields);
 
             return $document->getData();

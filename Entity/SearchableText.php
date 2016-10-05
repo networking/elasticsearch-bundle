@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the billag package.
+ * This file is part of the forel package.
  *
  * (c) net working AG <info@networking.ch>
  *
@@ -13,7 +13,6 @@ namespace Networking\ElasticSearchBundle\Entity;
 
 use Networking\InitCmsBundle\Entity\BaseText,
     Doctrine\ORM\Mapping as ORM,
-    Networking\InitCmsBundle\Entity\ContentInterface,
     Ibrows\Bundle\SonataAdminAnnotationBundle\Annotation as Sonata;
 
 /**
@@ -22,11 +21,20 @@ use Networking\InitCmsBundle\Entity\BaseText,
  *
  * @ORM\HasLifecycleCallbacks()
  * @ORM\Table(name="searchable_text")
- * @ORM\Entity(repositoryClass="Networking\InitCmsBundle\Entity\TextRepository")
+ * @ORM\Entity()
  *
  */
 class SearchableText extends BaseText
 {
+    /**
+     * @var integer $id
+     *
+     * @ORM\Column(name="id", type="integer")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    protected $id;
+
     /**
      * @return string
      */
