@@ -40,7 +40,7 @@ class DefaultController extends FrontendPageController
             );
         }
 
-        $searchTerm = $request->query->get('search');
+        $searchTerm = $request->get('search');
 
         $params = array('paginator' => array(), 'page' => $page, 'admin_pool' => $this->getAdminPool());
 
