@@ -90,9 +90,9 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
                     $content[] = html_entity_decode($text, null, 'UTF-8');
                     //echo $block->getText();
                 }
-
-
-                //$content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
+            }
+            else if (is_object($contentItem) && method_exists($contentItem, 'getSearchableContent')) {
+                $content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
             }
         }
 
