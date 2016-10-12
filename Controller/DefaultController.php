@@ -2,17 +2,11 @@
 
 namespace Networking\ElasticSearchBundle\Controller;
 
-use Elastica\Aggregation\Filter;
 use Elastica\Index;
 use Elastica\Query;
 use Networking\ElasticSearchBundle\Paginator\RawPaginatorAdapter;
 use Networking\InitCmsBundle\Controller\FrontendPageController;
-use Networking\InitCmsBundle\Model\Page;
-use Networking\InitCmsBundle\Entity\PageSnapshot;
-use Networking\InitCmsBundle\Model\PageInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Knp\Component\Pager\Paginator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,26 +17,22 @@ class DefaultController extends FrontendPageController
 
     /**
      * @Route("/search/", name="site_search")
-     * @Template
      */
     public function searchAction(Request $request)
     {
-        /** @var $page Page */
-        $page = $request->get('_content');
 
-        if ($page instanceof PageSnapshot) {
+        $request = $this->getPageHelper()->matchContentRouteRequest($request);
+        $params = $this->getPageParameters($request);
 
-            /** @var $page PageSnapshot */
-            $page = $this->get('serializer')->deserialize(
-                $page->getVersionedData(),
-                $this->container->getParameter('networking_init_cms.admin.page.class'),
-                'json'
-            );
+        $template =  $request->get('_template');
+
+        if($template instanceof \Sensio\Bundle\FrameworkExtraBundle\Configuration\Template )
+        {
+            $template = $template->getTemplate();
         }
 
-        $searchTerm = $request->get('search');
+        $searchTerm = $request->query->get('search');
 
-        $params = array('paginator' => array(), 'page' => $page, 'admin_pool' => $this->getAdminPool());
 
         if (!$searchTerm) {
             return array_merge($params);
@@ -97,7 +87,7 @@ class DefaultController extends FrontendPageController
             )
         );
 
-        return $params;
+        return $this->render($template, $params);
     }
 
 

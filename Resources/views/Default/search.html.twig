@@ -51,5 +51,4 @@
 {% else %}
     <p>{{ 'search.results_found'|transchoice(0, {'%search_term%': search_term|join(' ')},'networkingElasticSearch' ) }} </p>
 {% endif %}
-
 {% endblock content_row %}
