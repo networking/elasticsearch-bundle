@@ -21,8 +21,14 @@ class DefaultController extends FrontendPageController
     public function searchAction(Request $request)
     {
 
-        $request = $this->getPageHelper()->matchContentRouteRequest($request);
-        $params = $this->getPageParameters($request);
+        $params = array();
+        try{
+            $request = $this->getPageHelper()->matchContentRouteRequest($request);
+            $params = $this->getPageParameters($request);
+
+        }catch (ResourceNotFoundException $e){
+
+        }
 
         $template =  $request->get('_template');
 
