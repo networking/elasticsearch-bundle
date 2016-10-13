@@ -15,7 +15,8 @@ use Elastica\Document;
 use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
 use JMS\Serializer\Serializer;
 use Networking\InitCmsBundle\Entity\PageSnapshot;
-use Networking\InitCmsBundle\Model\SearchableContentInterface;
+use Networking\ElasticSearchBundle\Model\SearchableContentInterface;
+use Networking\InitCmsBundle\Model\TextInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyPath;
 
@@ -71,15 +72,13 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
 
         foreach ($page->getLayoutBlock() as $layoutBlock) {
 
-
-
             $contentItem = $this->serializer->deserialize(
                 $layoutBlock->getSnapshotContent(),
                 $layoutBlock->getClassType(),
                 'json'
             );
 
-            if ($contentItem instanceof SearchableContentInterface) {
+            if ($contentItem instanceof SearchableContentInterface || $contentItem instanceof TextInterface) {
 
                 $content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
             }
