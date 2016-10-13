@@ -8,8 +8,10 @@ use Networking\ElasticSearchBundle\Paginator\RawPaginatorAdapter;
 use Networking\InitCmsBundle\Controller\FrontendPageController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Knp\Component\Pager\Paginator;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 
 class DefaultController extends FrontendPageController
@@ -17,6 +19,7 @@ class DefaultController extends FrontendPageController
 
     /**
      * @Route("/search/", name="site_search")
+     * @Template()
      */
     public function searchAction(Request $request)
     {
