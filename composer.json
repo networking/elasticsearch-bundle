@@ -1,6 +1,6 @@
 {
     "name": "networking/elasticsearch-bundle",
-    "description": "This Bundle adds ",
+    "description": "This Bundle adds the elastic search component to the init cms",
     "keywords": ["symfony", "elasticsearch", "search"],
     "type": "symfony-bundle",
     "license": "MIT",
@@ -27,7 +27,7 @@
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
-            "dev-master": "2.7.x-dev"
+            "dev-master": "2.x-dev"
         }
     }
 }
