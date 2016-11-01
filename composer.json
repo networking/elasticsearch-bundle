@@ -18,7 +18,7 @@
         "doctrine/orm": "~2.2,>=2.2.3,<2.5",
         "doctrine/doctrine-bundle": "~1.4",
         "friendsofsymfony/elastica-bundle": "dev-master",
-        "networking/init-cms-bundle": "^2.8.5",
+        "networking/init-cms-bundle": "^2.8",
         "enzim/tika-wrapper": "dev-master"
     },
     "autoload": {
