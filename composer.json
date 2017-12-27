@@ -19,7 +19,7 @@
         "doctrine/doctrine-bundle": "~1.4",
         "friendsofsymfony/elastica-bundle": "dev-master",
         "networking/init-cms-bundle": "^2.8",
-        "enzim/tika-wrapper": "dev-master"
+        "enzim/tika-wrapper": "1.0.1"
     },
     "autoload": {
         "psr-4": {"Networking\\ElasticSearchBundle\\": ""}
