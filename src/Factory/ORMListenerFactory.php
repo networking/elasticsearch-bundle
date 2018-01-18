@@ -13,9 +13,11 @@ namespace Networking\ElasticSearchBundle\Factory;
 
 use Elastica\Type;
 use FOS\ElasticaBundle\Configuration\ConfigManager;
+use FOS\ElasticaBundle\Logger\ElasticaLogger;
 use FOS\ElasticaBundle\Persister\ObjectPersister;
 use FOS\ElasticaBundle\Provider\Indexable;
 use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
+use JMS\Serializer\SerializerInterface;
 use Networking\ElasticSearchBundle\Transformer\MediaToElasticaTransformer;
 use Networking\ElasticSearchBundle\Transformer\PageSnapshotToElasticaTransformer;
 use Symfony\Component\DependencyInjection\Container;
@@ -34,6 +36,11 @@ class ORMListenerFactory
     protected $indexable;
 
     /**
+     * @var SerializerInterface
+     */
+    protected $serializer;
+
+    /**
      * @var string;
      */
     protected $indexName;
@@ -43,19 +50,14 @@ class ORMListenerFactory
      */
     protected $logger = null;
 
-    /**
-     * ORMListenerFactory constructor.
-     * @param Container $container
-     * @param Indexable $indexable
-     */
-    public function __construct(Container $container, Indexable $indexable)
+
+    public function __construct(Container $container, Indexable $indexable, SerializerInterface $serializer, ElasticaLogger $elasticaLogger, $indexName)
     {
         $this->container = $container;
         $this->indexable = $indexable;
-        $this->indexName = $container->getParameter('elastic_search_index');
-        if($this->container->has('fos_elastica.logger')){
-            $this->logger =  $this->container->get('fos_elastica.logger');
-        }
+        $this->serializer = $serializer;
+        $this->indexName = $indexName;
+        $this->logger =  $elasticaLogger;
     }
 
     /**
@@ -64,7 +66,7 @@ class ORMListenerFactory
     public function createPageListener()
     {
 
-        $transformer = new PageSnapshotToElasticaTransformer($this->container->get('serializer'));
+        $transformer = new PageSnapshotToElasticaTransformer($this->serializer);
 
         $persister = $this->createPersister($transformer, 'page', 'Networking\InitCmsBundle\Entity\PageSnapshot');
 

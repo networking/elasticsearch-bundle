@@ -14,6 +14,7 @@ namespace Networking\ElasticSearchBundle\Transformer;
 use Elastica\Document;
 use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
 use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializerInterface;
 use Networking\InitCmsBundle\Entity\PageSnapshot;
 use Networking\ElasticSearchBundle\Model\SearchableContentInterface;
 use Networking\InitCmsBundle\Model\TextInterface;
@@ -42,10 +43,10 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
     /**
      * Instanciates a new Mapper
      *
-     * @param \JMS\Serializer\Serializer $serializer
+     * @param \JMS\Serializer\SerializerInterface $serializer
      * @param array $options
      */
-    public function __construct(Serializer $serializer, array $options = array())
+    public function __construct(SerializerInterface $serializer, array $options = array())
     {
         $this->serializer = $serializer;
         $this->options = array_merge($this->options, $options);

@@ -6,12 +6,17 @@ parameters:
 
 services:
     networking_elastic_search.factory:
-        class: Networking\ElasticSearchBundle\Factory\ORMListenerFactory
-        arguments: [@service_container, @fos_elastica.indexable]
+        class: 'Networking\ElasticSearchBundle\Factory\ORMListenerFactory'
+        arguments:
+              - '@service_container'
+              - '@fos_elastica.indexable'
+              - '@jms_serializer'
+              - '@fos_elastica.logger'
+              - '%elastic_search_index%'
 
 
     networking_elastic_search.page.listener:
-        class:  %networking_elastic_search.event_listener.listener.class%
+        class:  "%networking_elastic_search.event_listener.listener.class%"
         factory: ['@networking_elastic_search.factory', createPageListener]
         tags:
             - { name: doctrine.event_listener, event: postPersist }
@@ -19,28 +24,28 @@ services:
 
 
     networking_elastic_search.media.listener:
-        class:  %networking_elastic_search.event_listener.listener.class%
+        class:  "%networking_elastic_search.event_listener.listener.class%"
         factory: ['@networking_elastic_search.factory', createMediaListener]
         tags:
             - { name: doctrine.event_listener, event: postPersist }
             - { name: doctrine.event_listener, event: postRemove }
 
     networking_elastic_search.configurator:
-        class: %networking_elastic_search.component.configurator.class%
-        arguments: [@service_container]
+        class: "%networking_elastic_search.component.configurator.class%"
+        arguments: ['@service_container']
 
 
     networking_elastic_search.search_provider.page:
-        class: %networking_elastic_search.provider.page_snapshot.class%
-        arguments: ['@doctrine.orm.entity_manager', @serializer]
+        class: '%networking_elastic_search.provider.page_snapshot.class%'
+        arguments: ['@doctrine.orm.entity_manager', '@jms_serializer.serializer']
         configurator: ['@networking_elastic_search.configurator', configurePageSnapshot]
         tags:
-            - {name: fos_elastica.provider, index: %elastic_search_index%, type: page }
+            - {name: fos_elastica.provider, index: '%elastic_search_index%', type: page }
 
     networking_elastic_search.search_provider.media:
-        class: %networking_elastic_search.provider.media.class%
+        class: '%networking_elastic_search.provider.media.class%'
         arguments: ['@doctrine.orm.entity_manager']
         configurator: ['@networking_elastic_search.configurator', configureMedia]
         tags:
-            - {name: fos_elastica.provider, index: %elastic_search_index%, type: media }
+            - {name: fos_elastica.provider, index: '%elastic_search_index%', type: media }
 
