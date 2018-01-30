@@ -1,3 +1,8 @@
+site_search:
+    path:   /search/
+    defaults:  { _controller: NetworkingElasticSearchBundle:Default:search }
+    methods: [HEAD, GET, POST]
+
 site_search_de:
     path:   /suche/
     defaults:  { _controller: NetworkingElasticSearchBundle:Default:search }

@@ -26,5 +26,11 @@ class NetworkingElasticSearchExtension extends Extension
     {
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');
+        $configuration = new Configuration();
+
+        $config = $this->processConfiguration($configuration, $configs);
+        $container->setParameter('networking_elastic_search.base_template', $config['base_template']);
+        $container->setParameter('networking_elastic_search.search_template', $config['search_template']);
+
     }
 }

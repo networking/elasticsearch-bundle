@@ -31,9 +31,9 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
      *
      * @var array
      */
-    protected $options = array(
+    protected $options = [
         'identifier' => 'id'
-    );
+    ];
 
     /**
      * @var Serializer
@@ -44,12 +44,10 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
      * Instanciates a new Mapper
      *
      * @param \JMS\Serializer\SerializerInterface $serializer
-     * @param array $options
      */
-    public function __construct(SerializerInterface $serializer, array $options = array())
+    public function __construct(SerializerInterface $serializer)
     {
         $this->serializer = $serializer;
-        $this->options = array_merge($this->options, $options);
     }
 
     /**
@@ -63,7 +61,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
     public function transform($object, array $fields)
     {
 
-        $content = array();
+        $content = [];
         /** @var $page  \Application\Networking\InitCmsBundle\Entity\Page */
         $page = $this->serializer->deserialize(
             $object->getVersionedData(),
@@ -102,7 +100,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
                 $identifierProperty = new PropertyPath($mapping['_parent']['identifier']);
                 $document->setParent($propertyAccessor->getValue($parent, $identifierProperty));
 
-            } else if (isset($mapping['type']) && in_array($mapping['type'], array('nested', 'object'))) {
+            } else if (isset($mapping['type']) && in_array($mapping['type'], ['nested', 'object'])) {
                 $submapping = $mapping['properties'];
                 $subcollection = $propertyAccessor->getValue($page, $property);
                 $document->set($key, $this->transformNested($subcollection, $submapping, $document));
@@ -152,7 +150,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
     protected function transformNested($objects, array $fields, $parent)
     {
         if (is_array($objects) || $objects instanceof \Traversable || $objects instanceof \ArrayAccess) {
-            $documents = array();
+            $documents = [];
             foreach ($objects as $object) {
                 $document = $this->transform($object, $fields);
                 $documents[] = $document->getData();
@@ -165,7 +163,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
             return $document->getData();
         }
 
-        return array();
+        return [];
     }
 
     /**

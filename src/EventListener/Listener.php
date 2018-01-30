@@ -56,7 +56,7 @@ class Listener extends ORMListener
     public function __construct(
         ObjectPersisterInterface $objectPersister,
         IndexableInterface $indexable,
-        array $config = array(),
+        array $config = [],
         LoggerInterface $logger = null
     )
     {

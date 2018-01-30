@@ -19,10 +19,15 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('networking_elastic_search');
-
-        // Here you should define the parameters that are allowed to
-        // configure your bundle. See the documentation linked above for
-        // more information on that topic.
+        $rootNode
+            ->children()
+                ->scalarNode('base_template')
+                    ->defaultValue('ApplicationNetworkingInitCmsBundle::layout.html.twig')
+                ->end()
+                ->scalarNode('search_template')
+                    ->defaultValue('NetworkingElasticSearchBundle:Default:search.html.twig')
+                ->end()
+            ->end();
 
         return $treeBuilder;
     }

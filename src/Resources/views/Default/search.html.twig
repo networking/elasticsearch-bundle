@@ -1,4 +1,4 @@
-{% extends 'layout.html.twig' %}
+{% extends base_template %}
 
 
 {% block content_row %}
@@ -28,12 +28,6 @@
                             {{ entity.highlights.content|join(' ') |raw }}
                         {% else %}
                             {{ entity.content | excerpt(search_term|join(' '), 200)  | highlight(search_term|join(' '), '<em class="highlight">\\1</em>') |raw }}
-                        {% endif %}
-                    {% else %}
-                        {% if  entity.highlights['file.content'] is defined %}
-                            {{ entity.highlights['file.content']|join(' ') |raw }}
-                        {% else %}
-                            {{ entity.file.content | excerpt(search_term|join(' '), 200)  | highlight(search_term|join(' '), '<em class="highlight">\\1</em>') |raw }}
                         {% endif %}
                     {% endif %}
                 </p>

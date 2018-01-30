@@ -11,6 +11,7 @@
 namespace Networking\ElasticSearchBundle\Factory;
 
 
+use Elastica\Index;
 use Elastica\Type;
 use FOS\ElasticaBundle\Configuration\ConfigManager;
 use FOS\ElasticaBundle\Logger\ElasticaLogger;
@@ -20,15 +21,23 @@ use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
 use JMS\Serializer\SerializerInterface;
 use Networking\ElasticSearchBundle\Transformer\MediaToElasticaTransformer;
 use Networking\ElasticSearchBundle\Transformer\PageSnapshotToElasticaTransformer;
-use Symfony\Component\DependencyInjection\Container;
 use Networking\ElasticSearchBundle\EventListener\Listener;
+use Networking\InitCmsBundle\Entity\Media;
+use Networking\InitCmsBundle\Entity\PageSnapshot;
+use Sonata\MediaBundle\Provider\Pool;
+use Symfony\Component\Routing\RouterInterface;
 
 class ORMListenerFactory
 {
     /**
-     * @var Container
+     * @var Index
      */
-    protected $container;
+    protected $index;
+
+    /**
+     * @var
+     */
+    protected $configManager;
 
     /**
      * @var Indexable
@@ -50,49 +59,82 @@ class ORMListenerFactory
      */
     protected $logger = null;
 
+    /**
+     * @var RouterInterface
+     */
+    protected $router;
 
-    public function __construct(Container $container, Indexable $indexable, SerializerInterface $serializer, ElasticaLogger $elasticaLogger, $indexName)
+    /**
+     * @var Pool
+     */
+    protected $pool;
+
+    /**
+     * @var string
+     */
+    protected $webDir;
+
+
+    /**
+     * ORMListenerFactory constructor.
+     * @param Index $index
+     * @param ConfigManager $configManager
+     * @param Indexable $indexable
+     * @param SerializerInterface $serializer
+     * @param ElasticaLogger $elasticaLogger
+     * @param RouterInterface $router
+     * @param Pool $pool
+     * @param $indexName
+     * @param $webDir
+     */
+    public function __construct(Index $index, ConfigManager $configManager, Indexable $indexable, SerializerInterface $serializer, ElasticaLogger $elasticaLogger, RouterInterface $router, Pool $pool, $indexName, $webDir)
     {
-        $this->container = $container;
+        $this->index = $index;
+        $this->configManager = $configManager;
         $this->indexable = $indexable;
         $this->serializer = $serializer;
         $this->indexName = $indexName;
         $this->logger =  $elasticaLogger;
+        $this->router = $router;
+        $this->webDir = $webDir.'/../web';
+        $this->pool = $pool;
     }
 
     /**
      * @return Listener
+     * @throws \Exception
      */
     public function createPageListener()
     {
 
         $transformer = new PageSnapshotToElasticaTransformer($this->serializer);
 
-        $persister = $this->createPersister($transformer, 'page', 'Networking\InitCmsBundle\Entity\PageSnapshot');
+        $persister = $this->createPersister($transformer, 'page', PageSnapshot::class);
 
-        $config = array(
+        $config = [
             'identifier' => 'id',
             'indexName' => $this->indexName,
             'typeName' => 'page',
-        );
+        ];
 
         return new Listener($persister, $this->indexable, $config, $this->logger);
     }
 
     /**
      * @return Listener
+     * @throws \Exception
      */
     public function createMediaListener()
     {
-        $transformer = new MediaToElasticaTransformer($this->container);
+        $transformer = new MediaToElasticaTransformer($this->router, $this->pool, $this->webDir);
 
-        $persister = $this->createPersister($transformer, 'media', 'Networking\InitCmsBundle\Entity\Media');
+        $persister = $this->createPersister($transformer, 'media', Media::class);
 
-        $config = array(
+        $config = [
             'identifier' => 'id',
             'indexName' => $this->indexName,
             'typeName' => 'media',
-        );
+        ];
 
         $listener = new Listener($persister, $this->indexable, $config, $this->logger);
         $listener->setIsMedia(true);
@@ -105,11 +147,12 @@ class ORMListenerFactory
      * @param $typeName
      * @param $className
      * @return ObjectPersister
+     * @throws \Exception
      */
     protected function createPersister(ModelToElasticaTransformerInterface $transformer, $typeName, $className ){
 
         /** @var Type $type */
-        $type = $this->container->get(sprintf('fos_elastica.index.%s.%s', $this->indexName, $typeName));
+        $type = $this->index->getType($typeName);
 
         $fields = $this->getFields($typeName);
 
@@ -122,9 +165,7 @@ class ORMListenerFactory
      */
     protected function getFields($typeName)
     {
-        /** @var ConfigManager $config */
-        $config = $this->container->get('fos_elastica.config_manager');
-        $typeConfig = $config->getTypeConfiguration($this->indexName, $typeName)->getMapping();
+        $typeConfig = $this->configManager->getTypeConfiguration('app', $typeName)->getMapping();
 
         return $typeConfig['properties'];
     }

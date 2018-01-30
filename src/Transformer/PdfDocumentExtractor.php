@@ -53,9 +53,9 @@ class PdfDocumentExtractor
      * The extensions that can be handled by this text extractor.
      * @static
      */
-    public static $extensions = array(
+    public static $extensions = [
         'pdf'
-    );
+    ];
 
     /**
      * Holds the location of the pdftotext binary.  Should be a full filesystem

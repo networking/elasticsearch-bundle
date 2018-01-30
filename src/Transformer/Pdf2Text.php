@@ -80,8 +80,8 @@ class Pdf2Text {
 			return "";
 
 		// Get all text data.
-		$transformations = array();
-		$texts = array();
+		$transformations = [];
+		$texts = [];
 
 		// Get the list of all objects.
 		preg_match_all("#obj[\n|\r](.*)endobj[\n|\r]#ismU", $infile, $objects);
@@ -171,7 +171,7 @@ class Pdf2Text {
 		$output = "";
 
 		$isComment = false;
-		$ords = array();
+		$ords = [];
 
 		for($i = 0, $state = 0; $i < strlen($input) && $input[$i] != '~'; $i++) {
 			$c = $input[$i];
@@ -223,13 +223,13 @@ class Pdf2Text {
 	}
 
 	function getObjectOptions($object) {
-		$options = array();
+		$options = [];
 
 		if (preg_match("#<<(.*)>>#ismU", $object, $options)) {
 			$options = explode("/", $options[1]);
 			@array_shift($options);
 
-			$o = array();
+			$o = [];
 			for ($j = 0; $j < @count($options); $j++) {
 				$options[$j] = preg_replace("#\s+#", " ", trim($options[$j]));
 				if (strpos($options[$j], " ") !== false) {
@@ -347,7 +347,7 @@ class Pdf2Text {
 					break;
 					case "\\":
 						$c2 = $texts[$i][$j + 1];
-						if (in_array($c2, array("\\", "(", ")"))) $plain .= $c2;
+						if (in_array($c2, ["\\", "(", ")"])) $plain .= $c2;
 						elseif ($c2 == "n") $plain .= '\n';
 						elseif ($c2 == "r") $plain .= '\r';
 						elseif ($c2 == "t") $plain .= '\t';

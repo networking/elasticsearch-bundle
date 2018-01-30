@@ -1,23 +1,59 @@
 parameters:
-    networking_elastic_search.provider.page_snapshot.class: Networking\ElasticSearchBundle\Provider\PageSnapshotProvider
-    networking_elastic_search.provider.media.class: Networking\ElasticSearchBundle\Provider\MediaProvider
     networking_elastic_search.event_listener.listener.class: Networking\ElasticSearchBundle\EventListener\Listener
-    networking_elastic_search.component.configurator.class: Networking\ElasticSearchBundle\Component\Configurator
 
 services:
-    networking_elastic_search.factory:
-        class: 'Networking\ElasticSearchBundle\Factory\ORMListenerFactory'
+    # default configuration for services in *this* file
+    _defaults:
+        # automatically injects dependencies in your services
+        autowire: true
+        # automatically registers your services as commands, event subscribers, etc.
+        autoconfigure: true
+        # this means you cannot fetch services directly from the container via $container->get()
+        # if you need to do this, you can override this setting on individual services
+        public: false
+
+    Networking\ElasticSearchBundle\Controller\DefaultController:
+      autowire: true
+      public: true
+      arguments:
+          $index: '@fos_elastica.index.app'
+          $baseTemplate: '%networking_elastic_search.base_template%'
+          $searchTemplate: '%networking_elastic_search.search_template%'
+      tags:
+          - { name: 'controller.service_arguments'}
+
+
+    Networking\ElasticSearchBundle\Provider\PageSnapshotProvider:
+        autowire: true
+        public: true
+        tags:
+            - {name: fos_elastica.pager_provider, index: 'app', type: page }
+
+    Networking\ElasticSearchBundle\Transformer\PageSnapshotToElasticaTransformer:
+        autowire: true
+
+    Networking\ElasticSearchBundle\Provider\MediaProvider:
+        autowire: true
+        public: true
+        tags:
+            - {name: fos_elastica.pager_provider, index: 'app', type: media }
+
+    Networking\ElasticSearchBundle\Transformer\MediaToElasticaTransformer:
+        autowire: true
         arguments:
-              - '@service_container'
-              - '@fos_elastica.indexable'
-              - '@jms_serializer'
-              - '@fos_elastica.logger'
-              - '%elastic_search_index%'
+            $path: '%kernel.root_dir%/../web'
+
+    Networking\ElasticSearchBundle\Factory\ORMListenerFactory:
+        public: true
+        autowire: true
+        arguments:
+              $indexName: '%elastic_search_index%'
+              $webDir: '%kernel.root_dir%/../web'
 
 
     networking_elastic_search.page.listener:
         class:  "%networking_elastic_search.event_listener.listener.class%"
-        factory: ['@networking_elastic_search.factory', createPageListener]
+        factory: 'Networking\ElasticSearchBundle\Factory\ORMListenerFactory:createPageListener'
         tags:
             - { name: doctrine.event_listener, event: postPersist }
             - { name: doctrine.event_listener, event: postRemove }
@@ -25,27 +61,8 @@ services:
 
     networking_elastic_search.media.listener:
         class:  "%networking_elastic_search.event_listener.listener.class%"
-        factory: ['@networking_elastic_search.factory', createMediaListener]
+        factory: 'Networking\ElasticSearchBundle\Factory\ORMListenerFactory:createMediaListener'
         tags:
             - { name: doctrine.event_listener, event: postPersist }
             - { name: doctrine.event_listener, event: postRemove }
-
-    networking_elastic_search.configurator:
-        class: "%networking_elastic_search.component.configurator.class%"
-        arguments: ['@service_container']
-
-
-    networking_elastic_search.search_provider.page:
-        class: '%networking_elastic_search.provider.page_snapshot.class%'
-        arguments: ['@doctrine.orm.entity_manager', '@jms_serializer.serializer']
-        configurator: ['@networking_elastic_search.configurator', configurePageSnapshot]
-        tags:
-            - {name: fos_elastica.provider, index: '%elastic_search_index%', type: page }
-
-    networking_elastic_search.search_provider.media:
-        class: '%networking_elastic_search.provider.media.class%'
-        arguments: ['@doctrine.orm.entity_manager']
-        configurator: ['@networking_elastic_search.configurator', configureMedia]
-        tags:
-            - {name: fos_elastica.provider, index: '%elastic_search_index%', type: media }
 
