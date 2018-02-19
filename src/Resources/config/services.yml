@@ -43,26 +43,3 @@ services:
         arguments:
             $path: '%kernel.root_dir%/../web'
 
-    Networking\ElasticSearchBundle\Factory\ORMListenerFactory:
-        public: true
-        autowire: true
-        arguments:
-              $indexName: '%elastic_search_index%'
-              $webDir: '%kernel.root_dir%/../web'
-
-
-    networking_elastic_search.page.listener:
-        class:  "%networking_elastic_search.event_listener.listener.class%"
-        factory: 'Networking\ElasticSearchBundle\Factory\ORMListenerFactory:createPageListener'
-        tags:
-            - { name: doctrine.event_listener, event: postPersist }
-            - { name: doctrine.event_listener, event: postRemove }
-
-
-    networking_elastic_search.media.listener:
-        class:  "%networking_elastic_search.event_listener.listener.class%"
-        factory: 'Networking\ElasticSearchBundle\Factory\ORMListenerFactory:createMediaListener'
-        tags:
-            - { name: doctrine.event_listener, event: postPersist }
-            - { name: doctrine.event_listener, event: postRemove }
-
