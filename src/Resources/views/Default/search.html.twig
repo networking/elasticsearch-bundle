@@ -1,0 +1,48 @@
+{% extends base_template %}
+
+
+{% block content_row %}
+{% set url =  'site_search_'~(app.request.locale|slice(0,2)) %}
+{% if search_term is defined %}
+    {% set search_value  = search_term|join(' ') %}
+{% else %}
+    {% set search_value  = '' %}
+{% endif %}
+
+{% if search_term is defined %}
+    <h1>{{ 'search.title'|trans( {}, 'networkingElasticSearch') }}</h1>
+    <p class="ohne-einzug">{{ 'search.results_found'|transchoice(paginator.getTotalItemCount, {'%search_term%': search_term|join(' '), '%search_count%':paginator.getTotalItemCount,'%item-num-from%':paginator.getPaginationData.firstItemNumber,'%item-num-to%':paginator.getPaginationData.lastItemNumber}, 'networkingElasticSearch') }}</p>
+    <ul class="searchresult">
+        {% for entity in paginator %}
+            <li>
+                <a href="{{ url_prefix }}{{ entity.url }}">
+                    {% if entity.highlights.name is defined %}
+                        {{ entity.highlights.name|join(' ') |raw }}
+                    {% else %}
+                        {{ entity.name |raw }}
+                    {% endif %}
+                </a>
+                <p class="ohne-einzug">
+                    {% if entity.content %}
+                        {% if entity.highlights.content is defined %}
+                            {{ entity.highlights.content|join(' ') |raw }}
+                        {% else %}
+                            {{ entity.content | excerpt(search_term|join(' '), 200)  | highlight(search_term|join(' '), '<em class="highlight">\\1</em>') |raw }}
+                        {% endif %}
+                    {% endif %}
+                </p>
+            </li>
+        {% endfor %}
+    </ul>
+    {% if paginator is defined and paginator|length > 0 %}
+
+        <nav>
+            {{ knp_pagination_render(paginator, 'KnpPaginatorBundle:Pagination:twitter_bootstrap_v3_pagination.html.twig') }}
+        </nav>
+
+
+    {% endif %}
+{% else %}
+    <p>{{ 'search.results_found'|transchoice(0, {'%search_term%': search_term|join(' ')},'networkingElasticSearch' ) }} </p>
+{% endif %}
+{% endblock content_row %}
