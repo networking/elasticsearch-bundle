@@ -12,22 +12,17 @@
         }
     ],
     "require": {
-        "php": ">=5.4",
-        "symfony/symfony": "2.8.*",
-        "sensio/framework-extra-bundle": "^3.0.2",
-        "doctrine/orm": "^2.4.8",
-        "doctrine/doctrine-bundle": "~1.4",
-        "friendsofsymfony/elastica-bundle": "v4.1.1",
-        "networking/init-cms-bundle": "^2.8",
-        "enzim/tika-wrapper": "1.0.1"
+        "php": ">=7.1",
+        "friendsofsymfony/elastica-bundle": "^4.0",
+        "networking/init-cms-bundle": "3.4.*",
+        "enzim/tika-wrapper": "~1.0"
     },
     "autoload": {
-        "psr-4": {"Networking\\ElasticSearchBundle\\": ""}
+        "psr-4": {"Networking\\ElasticSearchBundle\\": "src"}
     },
-    "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
-            "dev-master": "2.x-dev"
+            "dev-master": "3.x-dev"
         }
     }
 }

@@ -1,0 +1,45 @@
+parameters:
+    networking_elastic_search.event_listener.listener.class: Networking\ElasticSearchBundle\EventListener\Listener
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        # automatically injects dependencies in your services
+        autowire: true
+        # automatically registers your services as commands, event subscribers, etc.
+        autoconfigure: true
+        # this means you cannot fetch services directly from the container via $container->get()
+        # if you need to do this, you can override this setting on individual services
+        public: false
+
+    Networking\ElasticSearchBundle\Controller\DefaultController:
+      autowire: true
+      public: true
+      arguments:
+          $index: '@fos_elastica.index.app'
+          $baseTemplate: '%networking_elastic_search.base_template%'
+          $searchTemplate: '%networking_elastic_search.search_template%'
+      tags:
+          - { name: 'controller.service_arguments'}
+
+
+    Networking\ElasticSearchBundle\Provider\PageSnapshotProvider:
+        autowire: true
+        public: true
+        tags:
+            - {name: fos_elastica.pager_provider, index: 'app', type: page }
+
+    Networking\ElasticSearchBundle\Transformer\PageSnapshotToElasticaTransformer:
+        autowire: true
+
+    Networking\ElasticSearchBundle\Provider\MediaProvider:
+        autowire: true
+        public: true
+        tags:
+            - {name: fos_elastica.pager_provider, index: 'app', type: media }
+
+    Networking\ElasticSearchBundle\Transformer\MediaToElasticaTransformer:
+        autowire: true
+        arguments:
+            $path: '%kernel.root_dir%/../web'
+
