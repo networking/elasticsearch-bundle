@@ -107,7 +107,7 @@ class DefaultController extends FrontendPageController
         $pagePaginator = $paginator->paginate($paginatorAdaptor, $currentPage);
         $pagePaginator->setParam('search', $searchTerm);
         $pagePaginator->setUsedRoute('site_search_' . substr($request->getLocale(), 0, 2));
-        $pagePaginator->setTemplate('NetworkingElasticSearchBundle:Pagination:twitter_bootstrap_pagination.html.twig');
+        $pagePaginator->setTemplate('@NetworkingElasticSearch/Pagination/twitter_bootstrap_pagination.html.twig');
 
         $params = array_merge(
             $params,

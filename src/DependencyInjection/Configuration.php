@@ -22,10 +22,10 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('base_template')
-                    ->defaultValue('ApplicationNetworkingInitCmsBundle::layout.html.twig')
+                    ->defaultValue('@ApplicationNetworkingInitCms/layout.html.twig')
                 ->end()
                 ->scalarNode('search_template')
-                    ->defaultValue('NetworkingElasticSearchBundle:Default:search.html.twig')
+                    ->defaultValue('@NetworkingElasticSearch/Default/search.html.twig')
                 ->end()
             ->end();
 
