@@ -28,7 +28,7 @@ class Client extends BaseClient
                     'path' => $path,
                     'method' => $method,
                     'data' => $data,
-                    'query' => $query
+                    'query' => $query,
                 ]);
             }
 

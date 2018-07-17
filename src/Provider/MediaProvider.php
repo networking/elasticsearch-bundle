@@ -8,7 +8,6 @@
  * file that was distributed with this source code.
  */
 
-
 namespace Networking\ElasticSearchBundle\Provider;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,7 +27,6 @@ class MediaProvider implements PagerProviderInterface
      */
     protected $em;
 
-
     public function __construct(EntityManagerInterface $em)
     {
         $this->em = $em;
@@ -36,13 +34,11 @@ class MediaProvider implements PagerProviderInterface
 
     public function provide(array $options = [])
     {
-
         $query = $this->createQueryBuilder();
 
         $pager = new PagerfantaPager(new Pagerfanta(new DoctrineORMAdapter($query)));
 
         return $pager;
-
     }
 
     /**
@@ -54,7 +50,7 @@ class MediaProvider implements PagerProviderInterface
         $qb = $repository->createQueryBuilder('a');
         $qb->where('a.providerName = :provider_name');
         $qb->setParameter(':provider_name', 'sonata.media.provider.file');
-        return $qb->getQuery();
 
+        return $qb->getQuery();
     }
 }

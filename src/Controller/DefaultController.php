@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
-
 class DefaultController extends FrontendPageController
 {
     /**
@@ -31,6 +30,7 @@ class DefaultController extends FrontendPageController
 
     /**
      * DefaultController constructor.
+     *
      * @param Index $index
      * @param $baseTemplate
      * @param $searchTemplate
@@ -43,37 +43,32 @@ class DefaultController extends FrontendPageController
     }
 
     /**
-     *
      * @param Request $request
+     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function searchAction(Request $request)
     {
-
         $params = [];
-        try{
+        try {
             $request = $this->getPageHelper()->matchContentRouteRequest($request);
             $params = $this->getPageParameters($request);
-
-        }catch (ResourceNotFoundException $e){
-
+        } catch (ResourceNotFoundException $e) {
         }
 
-        $template =  $request->get('_template', $this->searchTemplate);
+        $template = $request->get('_template', $this->searchTemplate);
 
-        if($template instanceof \Sensio\Bundle\FrameworkExtraBundle\Configuration\Template )
-        {
+        if ($template instanceof \Sensio\Bundle\FrameworkExtraBundle\Configuration\Template) {
             $template = $template->getTemplate();
         }
 
         $searchTerm = $request->query->get('search');
 
-
         if (!$searchTerm) {
             return array_merge($params);
         }
 
-        if($params instanceof RedirectResponse){
+        if ($params instanceof RedirectResponse) {
             return $params;
         }
 
@@ -93,20 +88,19 @@ class DefaultController extends FrontendPageController
         $query->setHighlight([
             'fields' => [
                 'content' => new \stdClass(),
-                'name' => new \stdClass()
-            ]
+                'name' => new \stdClass(),
+            ],
         ]);
 
         /** @var $paginator Paginator */
         $paginator = $this->get('knp_paginator');
         $currentPage = $request->query->get('page', 1);
 
-
         $paginatorAdaptor = new RawPaginatorAdapter($this->index, $query);
         /** @var \Knp\Bundle\PaginatorBundle\Pagination\SlidingPagination $pagePaginator */
         $pagePaginator = $paginator->paginate($paginatorAdaptor, $currentPage);
         $pagePaginator->setParam('search', $searchTerm);
-        $pagePaginator->setUsedRoute('site_search_' . substr($request->getLocale(), 0, 2));
+        $pagePaginator->setUsedRoute('site_search_'.substr($request->getLocale(), 0, 2));
         $pagePaginator->setTemplate('@NetworkingElasticSearch/Pagination/twitter_bootstrap_pagination.html.twig');
 
         $params = array_merge(
@@ -115,12 +109,10 @@ class DefaultController extends FrontendPageController
                 'paginator' => $pagePaginator,
                 'search_term' => explode(' ', trim($searchTerm)),
                 'url_prefix' => $this->get('kernel')->getEnvironment() == 'dev' ? '/app_dev.php' : '',
-                'base_template' => $this->baseTemplate
+                'base_template' => $this->baseTemplate,
             ]
         );
 
         return $this->render($template, $params);
     }
-
-
 }

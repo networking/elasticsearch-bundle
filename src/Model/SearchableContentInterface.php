@@ -10,7 +10,6 @@
 
 namespace Networking\ElasticSearchBundle\Model;
 
-
 interface SearchableContentInterface
 {
     /**

@@ -8,7 +8,6 @@
  * file that was distributed with this source code.
  */
 
-
 namespace Networking\ElasticSearchBundle\Transformer;
 
 use Elastica\Document;
@@ -23,7 +22,6 @@ use Symfony\Component\Routing\RouterInterface;
  */
 class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
 {
-
     /**
      * @var RouterInterface
      */
@@ -40,18 +38,19 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
     protected $path;
 
     /**
-     * Optional parameters
+     * Optional parameters.
      *
      * @var array
      */
     protected $options = [
-        'identifier' => 'id'
+        'identifier' => 'id',
     ];
 
     /**
      * MediaToElasticaTransformer constructor.
+     *
      * @param RouterInterface $router
-     * @param Pool $pool
+     * @param Pool            $pool
      * @param $path
      */
     public function __construct(RouterInterface $router, Pool $pool, $path)
@@ -62,7 +61,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
     }
 
     /**
-     * Transforms an Media object into an elastica object having the required keys
+     * Transforms an Media object into an elastica object having the required keys.
      *
      * @param Media $object the object to convert
      * @param array $fields the keys we want to have in the returned array
@@ -71,14 +70,11 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
      **/
     public function transform($object, array $fields)
     {
-
         $propertyAccessor = new PropertyAccessor();
-        $identifier =  $propertyAccessor->getValue($object, $this->options['identifier']);
+        $identifier = $propertyAccessor->getValue($object, $this->options['identifier']);
         $document = new Document($identifier);
 
-
         $provider = $this->pool->getProvider($object->getProviderName());
-
 
         foreach ($fields as $key => $mapping) {
             $value = null;
@@ -90,22 +86,19 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
                 $document->setParent($identifierProperty->getValue($parent, $mapping['_parent']['identifier']));
                 //$identifierProperty = new PropertyPath($mapping['_parent']['identifier']);
                 //$document->setParent($identifierProperty->getValue($parent));
-            } else if (isset($mapping['type']) && in_array($mapping['type'], ['nested', 'object'])) {
+            } elseif (isset($mapping['type']) && in_array($mapping['type'], ['nested', 'object'])) {
                 $submapping = $mapping['properties'];
                 $subcollection = $propertyAccessor->getValue($object, $key);
                 $document->set($key, $this->transformNested($subcollection, $submapping, $document));
-            } else if (isset($mapping['type']) && $mapping['type'] == 'attachment') {
-
+            } elseif (isset($mapping['type']) && $mapping['type'] == 'attachment') {
                 $file = $provider->generatePublicUrl($object, 'reference');
-                $attachment = new \SplFileInfo($this->path . $file);
+                $attachment = new \SplFileInfo($this->path.$file);
                 $document->addFile($key, $attachment->getPathName(), $object->getContentType());
-
             } else {
-
                 switch ($key) {
                     case 'content':
                         $file = $provider->generatePublicUrl($object, 'reference');
-                        $value = PdfDocumentExtractor::extract($this->path . $file);
+                        $value = PdfDocumentExtractor::extract($this->path.$file);
                         break;
                     case 'locale':
                         $value = $object->getLocale();
@@ -129,15 +122,16 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
         }
 
         $document->set('type', 'PDF');
+
         return $document;
     }
 
     /**
-     * transform a nested document or an object property into an array of ElasticaDocument
+     * transform a nested document or an object property into an array of ElasticaDocument.
      *
-     * @param array $objects    the object to convert
-     * @param array $fields     the keys we want to have in the returned array
-     * @param Document $parent the parent document
+     * @param array    $objects the object to convert
+     * @param array    $fields  the keys we want to have in the returned array
+     * @param Document $parent  the parent document
      *
      * @return array
      */
@@ -161,7 +155,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
     }
 
     /**
-     * Attempts to convert any type to a string or an array of strings
+     * Attempts to convert any type to a string or an array of strings.
      *
      * @param mixed $value
      *
@@ -173,7 +167,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
             if ($v instanceof \DateTime) {
                 $v = $v->format('c');
             } elseif (!is_scalar($v) && !is_null($v)) {
-                $v = (string)$v;
+                $v = (string) $v;
             }
         };
 
@@ -186,5 +180,4 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
 
         return $value;
     }
-
 }

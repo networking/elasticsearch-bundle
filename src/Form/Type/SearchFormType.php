@@ -12,6 +12,7 @@ namespace Networking\ElasticSearchBundle\Form\Type;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
+
 /**
  * @author Yorkie Chadwick <y.chadwick@networking.ch>
  */
@@ -20,7 +21,7 @@ class SearchFormType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $searchTerm = '';
-        if(array_key_exists('networking_elastic_search', $_REQUEST)){
+        if (array_key_exists('networking_elastic_search', $_REQUEST)) {
             $searchTerm = $_REQUEST['networking_elastic_search']['search'];
         }
         $builder
@@ -31,9 +32,9 @@ class SearchFormType extends AbstractType
                 'widget_control_group' => false,
                 'widget_controls' => false,
                 'attr' => [
-                    'class' => "input-medium search-query"
+                    'class' => 'input-medium search-query',
                 ],
-                'data' => $searchTerm
+                'data' => $searchTerm,
             ])
         ;
     }
@@ -42,10 +43,10 @@ class SearchFormType extends AbstractType
         return 'networking_elastic_search';
     }
     /**
-     * To implement NavbarFormTypeInterface
+     * To implement NavbarFormTypeInterface.
      */
     public function getRoute()
     {
-        return "site_search"; # return here the name of the route the form should point to
+        return 'site_search'; // return here the name of the route the form should point to
     }
 }

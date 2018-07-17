@@ -8,7 +8,6 @@
  * file that was distributed with this source code.
  */
 
-
 namespace Networking\ElasticSearchBundle\Transformer;
 
 use Elastica\Document;
@@ -27,12 +26,12 @@ use Symfony\Component\PropertyAccess\PropertyPath;
 class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInterface
 {
     /**
-     * Optional parameters
+     * Optional parameters.
      *
      * @var array
      */
     protected $options = [
-        'identifier' => 'id'
+        'identifier' => 'id',
     ];
 
     /**
@@ -41,7 +40,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
     protected $serializer;
 
     /**
-     * Instanciates a new Mapper
+     * Instanciates a new Mapper.
      *
      * @param \JMS\Serializer\SerializerInterface $serializer
      */
@@ -51,18 +50,17 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
     }
 
     /**
-     * Transforms an PageSnapshot object into an elastica object having the required keys
+     * Transforms an PageSnapshot object into an elastica object having the required keys.
      *
      * @param PageSnapshot $object the object to convert
-     * @param array $fields the keys we want to have in the returned array
+     * @param array        $fields the keys we want to have in the returned array
      *
      * @return Document
      **/
     public function transform($object, array $fields)
     {
-
         $content = [];
-        /** @var $page  \Application\Networking\InitCmsBundle\Entity\Page */
+        /** @var $page \Application\Networking\InitCmsBundle\Entity\Page */
         $page = $this->serializer->deserialize(
             $object->getVersionedData(),
             'Application\Networking\InitCmsBundle\Entity\Page',
@@ -70,7 +68,6 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
         );
 
         foreach ($page->getLayoutBlock() as $layoutBlock) {
-
             $contentItem = $this->serializer->deserialize(
                 $layoutBlock->getSnapshotContent(),
                 $layoutBlock->getClassType(),
@@ -78,7 +75,6 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
             );
 
             if ($contentItem instanceof SearchableContentInterface || $contentItem instanceof TextInterface) {
-
                 $content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
             }
         }
@@ -88,23 +84,20 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $identifier = $propertyAccessor->getValue($page, $identifierProperty);
 
-
         $document = new Document($identifier);
 
         foreach ($fields as $key => $mapping) {
             $property = new PropertyPath($key);
             if (!empty($mapping['_parent']) && $mapping['_parent'] !== '~') {
-
                 $parent = $propertyAccessor->getValue($page, $property);
 
                 $identifierProperty = new PropertyPath($mapping['_parent']['identifier']);
                 $document->setParent($propertyAccessor->getValue($parent, $identifierProperty));
-
-            } else if (isset($mapping['type']) && in_array($mapping['type'], ['nested', 'object'])) {
+            } elseif (isset($mapping['type']) && in_array($mapping['type'], ['nested', 'object'])) {
                 $submapping = $mapping['properties'];
                 $subcollection = $propertyAccessor->getValue($page, $property);
                 $document->set($key, $this->transformNested($subcollection, $submapping, $document));
-            } else if (isset($mapping['type']) && $mapping['type'] == 'attachment') {
+            } elseif (isset($mapping['type']) && $mapping['type'] == 'attachment') {
                 $attachment = $property->getElement($page);
                 if ($attachment instanceof \SplFileInfo) {
                     $document->addFile($key, $attachment->getPathName());
@@ -112,8 +105,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
                     $document->addFileContent($key, $attachment);
                 }
             } else {
-
-                switch($key){
+                switch ($key) {
                     case 'name':
                         $value = $page->getPageName();
                         break;
@@ -139,11 +131,11 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
     }
 
     /**
-     * transform a nested document or an object property into an array of ElasticaDocument
+     * transform a nested document or an object property into an array of ElasticaDocument.
      *
-     * @param array $objects    the object to convert
-     * @param array $fields     the keys we want to have in the returned array
-     * @param Document $parent the parent document
+     * @param array    $objects the object to convert
+     * @param array    $fields  the keys we want to have in the returned array
+     * @param Document $parent  the parent document
      *
      * @return array
      */
@@ -167,7 +159,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
     }
 
     /**
-     * Attempts to convert any type to a string or an array of strings
+     * Attempts to convert any type to a string or an array of strings.
      *
      * @param mixed $value
      *
@@ -179,7 +171,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
             if ($v instanceof \DateTime) {
                 $v = $v->format('c');
             } elseif (!is_scalar($v) && !is_null($v)) {
-                $v = (string)$v;
+                $v = (string) $v;
             }
         };
 
@@ -192,5 +184,4 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
 
         return $value;
     }
-
 }

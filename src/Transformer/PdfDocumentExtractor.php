@@ -2,7 +2,6 @@
 
 namespace Networking\ElasticSearchBundle\Transformer;
 
-
 /**
  * Extracts text from a PDF document.  Tries to use the pdftotext command-line
  * utility if it is installed, otherwise falls back to the PDF2Text class.
@@ -34,32 +33,33 @@ namespace Networking\ElasticSearchBundle\Transformer;
  * PdfDocumentExtractor::$binary_location = '/home/username/bin/pdftotext';
  * </code>
  *
- * @package lucene-silverstripe-module
  * @author Darren Inwood <darren.inwood@chrometoaster.com>
  */
 class PdfDocumentExtractor
 {
-
     /**
      * Controls the order in which text extractor classes are tried for a
      * specific file extension.  Default is 100.  To make your custom extractor
      * run before an inbuilt one, set this to less than 100, or to make it run
      * afterwards set it to more than 100.
+     *
      * @static
      */
     public static $priority = 100;
 
     /**
      * The extensions that can be handled by this text extractor.
+     *
      * @static
      */
     public static $extensions = [
-        'pdf'
+        'pdf',
     ];
 
     /**
      * Holds the location of the pdftotext binary.  Should be a full filesystem
      * path.
+     *
      * @static
      */
     public static $binary_location;
@@ -67,38 +67,35 @@ class PdfDocumentExtractor
     /**
      * Returns a string containing the text in the given TXT document.
      *
-     * @param   String $filename   Full filesystem path to the file to process.
-     * @return  String  Text extracted from the file.
+     * @param string $filename Full filesystem path to the file to process
+     *
+     * @return string Text extracted from the file
      */
     public static function extract($filename)
     {
-        if (!file_exists($filename)) return '';
+        if (!file_exists($filename)) {
+            return '';
+        }
         if (self::get_binary_path()) {
             return self::commandline($filename);
         }
+
         return self::pdf2text($filename);
     }
 
-
-    /**
-     * @access private
-     */
     protected static function commandline($filename)
     {
         $binary_path = self::get_binary_path();
-        $command = escapeshellarg(realpath($binary_path)) . ' ' . escapeshellarg(realpath($filename)) . ' -enc UTF-8 -';
+        $command = escapeshellarg(realpath($binary_path)).' '.escapeshellarg(realpath($filename)).' -enc UTF-8 -';
         if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
             // PHP has a weird bug where you can't escape the command and
             // arguments, so we pass thru cmd
-            $command = 'cmd /c " ' . $command . ' "';
+            $command = 'cmd /c " '.$command.' "';
         }
+
         return shell_exec($command);
     }
 
-
-    /**
-     * @access private
-     */
     protected static function pdf2text($filename)
     {
         if (!extension_loaded('zlib')) {
@@ -118,27 +115,29 @@ class PdfDocumentExtractor
             $pdf->decodePDF();
             $content = $pdf->output();
         }
+
         return $content;
     }
 
     /**
      * Try to detect where the pdftptext binary has been installed.
      *
-     * @access private
-     * @return  String|Boolean  Returns the path to the pdftotext binary, or
-     *                          boolean false if it cannot be found.
+     * @return string|bool Returns the path to the pdftotext binary, or
+     *                     boolean false if it cannot be found
      */
     protected static function get_binary_path()
     {
-        if (self::$binary_location) return self::$binary_location;
+        if (self::$binary_location) {
+            return self::$binary_location;
+        }
         if (defined('PDFTOTEXT_BINARY_LOCATION')) {
             self::$binary_location = PDFTOTEXT_BINARY_LOCATION;
-        } else if (file_exists('/usr/bin/pdftotext')) {
+        } elseif (file_exists('/usr/bin/pdftotext')) {
             self::$binary_location = '/usr/bin/pdftotext';
-        } else if (file_exists('/usr/local/bin/pdftotext')) {
+        } elseif (file_exists('/usr/local/bin/pdftotext')) {
             self::$binary_location = '/usr/local/bin/pdftotext';
         }
+
         return self::$binary_location;
     }
-
 }

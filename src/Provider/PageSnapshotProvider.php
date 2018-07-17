@@ -8,7 +8,6 @@
  * file that was distributed with this source code.
  */
 
-
 namespace Networking\ElasticSearchBundle\Provider;
 
 use Doctrine\ORM\Query;
@@ -28,9 +27,9 @@ class PageSnapshotProvider implements PagerProviderInterface
      */
     protected $pageSnapshotManager;
 
-
     /**
      * PageSnapshotProvider constructor.
+     *
      * @param PageSnapshotManager $pageSnapshotManager
      */
     public function __construct(PageSnapshotManager $pageSnapshotManager)
@@ -45,7 +44,6 @@ class PageSnapshotProvider implements PagerProviderInterface
         $pager = new PagerfantaPager(new Pagerfanta(new DoctrineORMAdapter($query)));
 
         return $pager;
-
     }
 
     /**
@@ -54,7 +52,7 @@ class PageSnapshotProvider implements PagerProviderInterface
     public function getAllSortByQuery()
     {
         $qb = $this->pageSnapshotManager->createQueryBuilder('ps');
-        $qb2= $this->pageSnapshotManager->createQueryBuilder('pp');
+        $qb2 = $this->pageSnapshotManager->createQueryBuilder('pp');
         $subselect = $qb2->select('MAX(pp.id) as snapshotId')
             ->groupBy('pp.page')
             ->getDQL();
