@@ -13,7 +13,7 @@ namespace Networking\ElasticSearchBundle\Provider;
 use Doctrine\ORM\Query;
 use FOS\ElasticaBundle\Provider\PagerfantaPager;
 use FOS\ElasticaBundle\Provider\PagerProviderInterface;
-use Networking\InitCmsBundle\Entity\PageSnapshotManager;
+use Networking\InitCmsBundle\Model\PageSnapshotManagerInterface;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Pagerfanta\Pagerfanta;
 
@@ -23,16 +23,16 @@ use Pagerfanta\Pagerfanta;
 class PageSnapshotProvider implements PagerProviderInterface
 {
     /**
-     * @var PageSnapshotManager
+     * @var PageSnapshotManagerInterface
      */
     protected $pageSnapshotManager;
 
     /**
      * PageSnapshotProvider constructor.
      *
-     * @param PageSnapshotManager $pageSnapshotManager
+     * @param PageSnapshotManagerInterface $pageSnapshotManager
      */
-    public function __construct(PageSnapshotManager $pageSnapshotManager)
+    public function __construct(PageSnapshotManagerInterface $pageSnapshotManager)
     {
         $this->pageSnapshotManager = $pageSnapshotManager;
     }

@@ -43,3 +43,6 @@ services:
         arguments:
             $path: '%kernel.root_dir%/../web'
 
+    Sonata\MediaBundle\Provider\Pool:
+        alias: 'sonata.media.pool'
+
