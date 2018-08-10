@@ -13,6 +13,8 @@ namespace Networking\ElasticSearchBundle\Transformer;
 use Elastica\Document;
 use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
 use Networking\InitCmsBundle\Entity\Media;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\BaseReader;
 use Sonata\MediaBundle\Provider\Pool;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Routing\RouterInterface;
@@ -98,7 +100,31 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
                 switch ($key) {
                     case 'content':
                         $file = $provider->generatePublicUrl($object, 'reference');
-                        $value = PdfDocumentExtractor::extract($this->path.$file);
+
+
+                        if('application/pdf' == $object->getContentType()){
+	                        $value = PdfDocumentExtractor::extract($this->path.$file);
+                        }
+
+                        if(substr($file, -4) === 'docx'){
+                        	$value = $this->readDocx( $this->path . $file);
+                        }
+
+                        if(substr($file, -3) === 'doc'){
+                        	$value = $this->readDoc( $this->path . $file);
+                        }
+
+                        if(substr($file, -4) === 'xlsx'){
+                        	$value = $this->readXlsx( $this->path . $file);
+                        }
+
+                        if(substr($file, -3) === 'xls'){
+                        	$value = $this->readXls( $this->path . $file);
+                        }
+
+                        if(!$value){
+                        	$value = $object->getDescription();
+                        }
                         break;
                     case 'locale':
                         $value = $object->getLocale();
@@ -107,10 +133,10 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
                         $value = $this->router->generate('sonata_media_download', ['id' => $object->getId()]);
                         break;
                     case 'metaTitle':
-                        $value = '';
+                        $value = $object->getAuthorName().' '.$object->getCopyright();
                         break;
                     case 'type':
-                        $document->set('type', 'PDF');
+                        $document->set('type', $object->getContentType());
                         break;
                     default:
                         $value = $propertyAccessor->getValue($object, $key);  //$property->getValue($object);
@@ -121,7 +147,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
             }
         }
 
-        $document->set('type', 'PDF');
+        $document->set('type', $object->getContentType());
 
         return $document;
     }
@@ -180,4 +206,108 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
 
         return $value;
     }
+
+	/**
+	 * @param $file
+	 *
+	 * @return null|string|string[]
+	 */
+	protected function readDoc($file) {
+		$fileHandle = fopen($file, "r");
+		$line = @fread($fileHandle, filesize($file));
+		$lines = explode(chr(0x0D),$line);
+		$outtext = "";
+		foreach($lines as $thisline)
+		{
+			$pos = strpos($thisline, chr(0x00));
+			if (($pos !== FALSE)||(strlen($thisline)==0))
+			{
+			} else {
+				$outtext .= $thisline." ";
+			}
+		}
+		$outtext = preg_replace("/[^a-zA-Z0-9\s\,\.\-\n\r\t@\/\_\(\)]/","",$outtext);
+		return $outtext;
+	}
+
+	/**
+	 * @param $file
+	 *
+	 * @return bool|string
+	 */
+	protected function readDocx($file){
+
+		$content = '';
+
+		$zip = zip_open($file);
+
+		if (!$zip || is_numeric($zip)) return false;
+
+		while ($zip_entry = zip_read($zip)) {
+
+			if (zip_entry_open($zip, $zip_entry) == FALSE) continue;
+
+			if (zip_entry_name($zip_entry) != "word/document.xml") continue;
+
+			$content .= zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
+
+			zip_entry_close($zip_entry);
+		}// end while
+
+		zip_close($zip);
+
+		$content = str_replace('</w:r></w:p></w:tc><w:tc>', " ", $content);
+		$content = str_replace('</w:r></w:p>', "\r\n", $content);
+		$striped_content = strip_tags($content);
+
+		return $striped_content;
+	}
+
+	/**
+	 * @param $file
+	 *
+	 * @return string
+	 * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
+	 */
+	protected function readXlsx($file)
+	{
+		$reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+		return $this->readExcel($reader, $file);
+
+	}
+
+	/**
+	 * @param $file
+	 *
+	 * @return string
+	 * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
+	 */
+	protected function readXls($file)
+	{
+		$reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
+		return $this->readExcel($reader, $file);
+	}
+
+	/**
+	 * @param BaseReader $reader
+	 * @param $file
+	 *
+	 * @return string
+	 * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
+	 */
+	protected function readExcel(BaseReader $reader, $file)
+	{
+		$reader->setReadDataOnly(true);
+		$spreadsheet = $reader->load($file);
+
+		$data = [];
+
+		foreach ($spreadsheet->getAllSheets() as $sheet){
+			foreach ($sheet->toArray() as $row){
+				$data[] = implode(', ', $row);
+			}
+		}
+
+		return implode(', ', $data);
+	}
 }

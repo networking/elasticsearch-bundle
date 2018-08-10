@@ -28,10 +28,10 @@ fos_elastica:
             types:
                 page:
                     properties:
-                        name: {type: 'string',boost: 30, analyzer: my_search_analyzer}
+                        name: {type: 'string',analyzer: my_search_analyzer}
                         metaTitle:  {type: 'string', "index" : "no"}
                         locale: { type: 'string', store: false}
-                        content: {type: 'string',boost: 30, analyzer: my_search_analyzer}
+                        content: {type: 'string',analyzer: my_search_analyzer}
                         url: {type: 'string',"index" : "no"}
                     persistence:
                         identifier: resourceId
@@ -41,11 +41,11 @@ fos_elastica:
                 media:
                     indexable_callback: [ 'Networking\ElasticSearchBundle\Transformer\IndexableChecker', 'isIndexable' ]
                     properties:
-                        name: {boost: 30, analyzer: my_search_analyzer}
-                        metaTitle:  {"index" : "no"}
+                        name: {type: 'string',analyzer: my_search_analyzer}
+                        metaTitle:  {type: 'string', "index" : "no"}
                         locale: { type: 'string', store: false}
-                        content: {boost: 30, analyzer: my_search_analyzer}
-                        url: {"index" : "no"}
+                        content: {type: 'string',analyzer: my_search_analyzer}
+                        url: {type: 'string',"index" : "no"}
                     persistence:
                         driver: orm # orm, mongodb, propel are available
                         model: Networking\InitCmsBundle\Entity\Media

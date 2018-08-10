@@ -73,16 +73,43 @@ class DefaultController extends FrontendPageController
         }
 
         $keywordQuery = new Query\QueryString($searchTerm);
-        $keywordQuery->setFields(['content', 'name']);
-        $keywordQuery->setAnalyzeWildcard(true);
-        $keywordQuery->setPhraseSlop(40);
-        $keywordQuery->setUseDisMax(true);
+        $keywordQuery->setFields(['content'])
+                     ->setAnalyzeWildcard(true)
+                     ->setPhraseSlop(40);
 
-        $query = new Query($keywordQuery);
+	    $nameQuery = new Query\QueryString($searchTerm);
+	    $nameQuery->setFields(['name'])
+	              ->setAnalyzeWildcard(true)
+	              ->setPhraseSlop(40)
+	              ->setBoost(2.0);
 
-        $localeQuery = new Query\QueryString($request->getLocale());
-        $localeQuery->setFields(['locale']);
-        $query->setPostFilter($localeQuery);
+
+        $metaTitle = new Query\QueryString($searchTerm);
+	    $metaTitle->setFields(['metaTitle'])
+	              ->setAnalyzeWildcard(true)
+	              ->setPhraseSlop(40);
+
+	    $disMax = new Query\DisMax();
+	    $disMax->addQuery($nameQuery)
+	           ->addQuery($keywordQuery)
+	           ->addQuery($metaTitle)
+	           ->setTieBreaker(0.3);
+
+		$query = new Query($disMax);
+
+
+
+        $localeQuery = new Query\Match('locale', $request->getLocale());
+        $missingLocaleQuery = new Query\Missing('locale');
+
+        $or = new Query\BoolQuery();
+	    $or->addShould($localeQuery);
+	    $or->addShould($missingLocaleQuery);
+        $booleanQuery = new Query\BoolQuery();
+        $booleanQuery->addMust($or);
+
+
+        $query->setPostFilter($booleanQuery);
         $request->query->set('search', $searchTerm);
 
         $query->setHighlight([
@@ -96,7 +123,7 @@ class DefaultController extends FrontendPageController
         $paginator = $this->get('knp_paginator');
         $currentPage = $request->query->get('page', 1);
 
-        $paginatorAdaptor = new RawPaginatorAdapter($this->index, $query);
+        $paginatorAdaptor = new \Networking\ElasticSearchBundle\Paginator\RawPaginatorAdapter($this->index, $query);
         /** @var \Knp\Bundle\PaginatorBundle\Pagination\SlidingPagination $pagePaginator */
         $pagePaginator = $paginator->paginate($paginatorAdaptor, $currentPage);
         $pagePaginator->setParam('search', $searchTerm);

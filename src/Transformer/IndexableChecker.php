@@ -15,11 +15,8 @@ class IndexableChecker
     public static function isIndexable($object)
     {
         if ($object instanceof Media) {
-            if ($object->getContentType() == 'application/pdf') {
-                return $object->getEnabled();
-            }
+        	return $object->getEnabled();
         }
-
         return false;
     }
 }

@@ -24,8 +24,9 @@
                 </a>
                 <p class="ohne-einzug">
                     {% if entity.content %}
+
                         {% if entity.highlights.content is defined %}
-                            {{ entity.highlights.content|join(' ') |raw }}
+                            {{ entity.highlights.content|join('...') |raw }}
                         {% else %}
                             {{ entity.content | excerpt(search_term|join(' '), 200)  | highlight(search_term|join(' '), '<em class="highlight">\\1</em>') |raw }}
                         {% endif %}

@@ -48,8 +48,8 @@ class MediaProvider implements PagerProviderInterface
     {
         $repository = $this->em->getRepository(Media::class);
         $qb = $repository->createQueryBuilder('a');
-        $qb->where('a.providerName = :provider_name');
-        $qb->setParameter(':provider_name', 'sonata.media.provider.file');
+//        $qb->where('a.providerName = :provider_name');
+//        $qb->setParameter(':provider_name', 'sonata.media.provider.file');
 
         return $qb->getQuery();
     }
