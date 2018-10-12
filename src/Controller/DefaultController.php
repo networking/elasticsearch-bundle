@@ -5,6 +5,7 @@ namespace Networking\ElasticSearchBundle\Controller;
 use Elastica\Index;
 use Elastica\Query;
 use FOS\ElasticaBundle\Paginator\RawPaginatorAdapter;
+use Networking\ElasticSearchBundle\Elastica\BoolQuery;
 use Networking\InitCmsBundle\Controller\FrontendPageController;
 use Knp\Component\Pager\Paginator;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -62,79 +63,79 @@ class DefaultController extends FrontendPageController
             $template = $template->getTemplate();
         }
 
-        $searchTerm = $request->query->get('search');
+	    if ($params instanceof RedirectResponse) {
+		    return $params;
+	    }
 
-        if (!$searchTerm) {
-            return array_merge($params);
-        }
+        $searchTerm = $request->query->get('search', false);
 
-        if ($params instanceof RedirectResponse) {
-            return $params;
-        }
+	    $pagePaginator = false;
 
-        $keywordQuery = new Query\QueryString($searchTerm);
-        $keywordQuery->setFields(['content'])
-                     ->setAnalyzeWildcard(true)
-                     ->setPhraseSlop(40);
+	    if ($searchTerm) {
 
-	    $nameQuery = new Query\QueryString($searchTerm);
-	    $nameQuery->setFields(['name'])
-	              ->setAnalyzeWildcard(true)
-	              ->setPhraseSlop(40)
-	              ->setBoost(2.0);
+		    $keywordQuery = new Query\QueryString( $searchTerm );
+		    $keywordQuery->setFields( [ 'content' ] )
+		                 ->setAnalyzeWildcard( true )
+		                 ->setPhraseSlop( 40 );
 
-
-        $metaTitle = new Query\QueryString($searchTerm);
-	    $metaTitle->setFields(['metaTitle'])
-	              ->setAnalyzeWildcard(true)
-	              ->setPhraseSlop(40);
-
-	    $disMax = new Query\DisMax();
-	    $disMax->addQuery($nameQuery)
-	           ->addQuery($keywordQuery)
-	           ->addQuery($metaTitle)
-	           ->setTieBreaker(0.3);
-
-		$query = new Query($disMax);
+		    $nameQuery = new Query\QueryString( $searchTerm );
+		    $nameQuery->setFields( [ 'name' ] )
+		              ->setAnalyzeWildcard( true )
+		              ->setPhraseSlop( 40 )
+		              ->setBoost( 2.0 );
 
 
+		    $metaTitle = new Query\QueryString( $searchTerm );
+		    $metaTitle->setFields( [ 'metaTitle' ] )
+		              ->setAnalyzeWildcard( true )
+		              ->setPhraseSlop( 40 );
 
-        $localeQuery = new Query\Match('locale', $request->getLocale());
-        $missingLocaleQuery = new Query\Missing('locale');
+		    $disMax = new Query\DisMax();
+		    $disMax->addQuery( $nameQuery )
+		           ->addQuery( $keywordQuery )
+		           ->addQuery( $metaTitle )
+		           ->setTieBreaker( 0.3 );
 
-        $or = new Query\BoolQuery();
-	    $or->addShould($localeQuery);
-	    $or->addShould($missingLocaleQuery);
-        $booleanQuery = new Query\BoolQuery();
-        $booleanQuery->addMust($or);
+		    $query = new Query( $disMax );
 
 
-        $query->setPostFilter($booleanQuery);
-        $request->query->set('search', $searchTerm);
+		    $localeQuery        = new Query\Match( 'locale', $request->getLocale() );
+		    $missingLocaleQuery = new Query\Missing( 'locale' );
 
-        $query->setHighlight([
-            'fields' => [
-                'content' => new \stdClass(),
-                'name' => new \stdClass(),
-            ],
-        ]);
+		    $or = new BoolQuery();
+		    $or->addShould( $localeQuery );
+		    $or->addShould( $missingLocaleQuery );
+		    $booleanQuery = new BoolQuery();
+		    $booleanQuery->addMust( $or );
 
-        /** @var $paginator Paginator */
-        $paginator = $this->get('knp_paginator');
-        $currentPage = $request->query->get('page', 1);
 
-        $paginatorAdaptor = new \Networking\ElasticSearchBundle\Paginator\RawPaginatorAdapter($this->index, $query);
-        /** @var \Knp\Bundle\PaginatorBundle\Pagination\SlidingPagination $pagePaginator */
-        $pagePaginator = $paginator->paginate($paginatorAdaptor, $currentPage);
-        $pagePaginator->setParam('search', $searchTerm);
-        $pagePaginator->setUsedRoute('site_search_'.substr($request->getLocale(), 0, 2));
-        $pagePaginator->setTemplate('@NetworkingElasticSearch/Pagination/twitter_bootstrap_pagination.html.twig');
+		    $query->setPostFilter( $booleanQuery );
+		    $request->query->set( 'search', $searchTerm );
+
+		    $query->setHighlight( [
+			    'fields' => [
+				    'content' => new \stdClass(),
+				    'name'    => new \stdClass(),
+			    ],
+		    ] );
+
+		    /** @var $paginator Paginator */
+		    $paginator   = $this->get( 'knp_paginator' );
+		    $currentPage = $request->query->get( 'page', 1 );
+
+		    $paginatorAdaptor = new \Networking\ElasticSearchBundle\Paginator\RawPaginatorAdapter( $this->index, $query );
+		    /** @var \Knp\Bundle\PaginatorBundle\Pagination\SlidingPagination $pagePaginator */
+		    $pagePaginator = $paginator->paginate( $paginatorAdaptor, $currentPage );
+		    $pagePaginator->setParam( 'search', $searchTerm );
+		    $pagePaginator->setUsedRoute( 'site_search_' . substr( $request->getLocale(), 0, 2 ) );
+		    $pagePaginator->setTemplate( '@NetworkingElasticSearch/Pagination/twitter_bootstrap_pagination.html.twig' );
+	    }
 
         $params = array_merge(
             $params,
             [
                 'paginator' => $pagePaginator,
-                'search_term' => explode(' ', trim($searchTerm)),
+                'search_term' => $searchTerm?explode(' ', trim($searchTerm)):false,
                 'url_prefix' => $this->get('kernel')->getEnvironment() == 'dev' ? '/app_dev.php' : '',
                 'base_template' => $this->baseTemplate,
             ]
