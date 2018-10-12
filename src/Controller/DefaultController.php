@@ -17,17 +17,17 @@ class DefaultController extends FrontendPageController
     /**
      * @var Index
      */
-    private $index;
+    protected $index;
 
     /**
      * @var string
      */
-    private $baseTemplate;
+	protected $baseTemplate;
 
     /**
      * @var string
      */
-    private $searchTemplate;
+	protected $searchTemplate;
 
     /**
      * DefaultController constructor.
