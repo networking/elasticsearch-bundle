@@ -5,7 +5,7 @@ namespace Networking\ElasticSearchBundle\Controller;
 use Elastica\Index;
 use Elastica\Query;
 use FOS\ElasticaBundle\Paginator\RawPaginatorAdapter;
-use Networking\ElasticSearchBundle\Elastica\BoolQuery;
+use Networking\ElasticSearchBundle\Query\BoolQuery;
 use Networking\InitCmsBundle\Controller\FrontendPageController;
 use Knp\Component\Pager\Paginator;
 use Symfony\Component\HttpFoundation\RedirectResponse;

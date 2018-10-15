@@ -5,7 +5,7 @@
  * Date: 12.10.18
  * Time: 17:07
  */
-namespace Networking\ElasticSearchBundle\Elastica;
+namespace Networking\ElasticSearchBundle\Query;
 
 use Elastica\Query\BoolQuery as BaseQuery;
 
