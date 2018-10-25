@@ -83,6 +83,15 @@ class Listener extends ORMListener
         }
     }
 
+	public function postUpdate(LifecycleEventArgs $eventArgs){
+		$entity = $eventArgs->getObject();
+
+		if ($this->objectPersister->handlesObject($entity) && $this->isObjectIndexable($entity)) {
+
+			$this->objectPersister->replaceOne($entity);
+		}
+	}
+
     public function postRemove(LifecycleEventArgs $eventArgs)
     {
         $entity = $eventArgs->getObject();
