@@ -3,6 +3,7 @@ parameters:
     networking_elastic_search.provider.media.class: Networking\ElasticSearchBundle\Provider\MediaProvider
     networking_elastic_search.event_listener.listener.class: Networking\ElasticSearchBundle\EventListener\Listener
     networking_elastic_search.component.configurator.class: Networking\ElasticSearchBundle\Component\Configurator
+    fos_elastica.client.class: Networking\ElasticSearchBundle\Elastica\Client
 
 services:
     networking_elastic_search.factory:
