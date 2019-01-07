@@ -41,6 +41,7 @@ services:
     Networking\ElasticSearchBundle\Transformer\MediaToElasticaTransformer:
         autowire: true
         arguments:
+            $router: '@router.default'
             $path: '%kernel.root_dir%/../web'
 
     Sonata\MediaBundle\Provider\Pool:
