@@ -60,10 +60,10 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
     public function transform($object, array $fields)
     {
         $content = [];
-        /** @var $page \Application\Networking\InitCmsBundle\Entity\Page */
+        /** @var $page \Networking\InitCmsBundle\Entity\BasePage */
         $page = $this->serializer->deserialize(
             $object->getVersionedData(),
-            'Application\Networking\InitCmsBundle\Entity\Page',
+            $object->getResourceName(),
             'json'
         );
 
