@@ -13,7 +13,6 @@ namespace Networking\ElasticSearchBundle\Paginator;
 
 use Elastica\Result;
 use FOS\ElasticaBundle\Paginator\RawPartialResults;
-use Enzim\Lib\TikaWrapper\TikaWrapper;
 
 /**
  * @author Yorkie Chadwick <y.chadwick@networking.ch>
@@ -33,7 +32,8 @@ class RawResults extends RawPartialResults
             $source['score'] = $result->getScore();
 
             if(array_key_exists('file', $source) && !array_key_exists('file.content', $source['highlights'])){
-                $source['file']['content'] = TikaWrapper::getText($source['file']['_name']);
+                $client = \Vaites\ApacheTika\Client::prepare('../../bin/tika-app-1.14.jar');
+                $source['file']['content'] = $client->getText($source['file']['_name']);
             }
             return $source;
 
