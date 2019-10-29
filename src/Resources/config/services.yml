@@ -1,6 +1,3 @@
-parameters:
-    networking_elastic_search.event_listener.listener.class: Networking\ElasticSearchBundle\EventListener\Listener
-
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -22,21 +19,21 @@ services:
       tags:
           - { name: 'controller.service_arguments'}
 
-
-    Networking\ElasticSearchBundle\Provider\PageSnapshotProvider:
-        autowire: true
-        public: true
-        tags:
-            - {name: fos_elastica.pager_provider, index: 'app', type: page }
-
+#
+#    Networking\ElasticSearchBundle\Provider\PageSnapshotProvider:
+#        autowire: true
+#        public: true
+#        tags:
+#            - {name: fos_elastica.pager_provider, index: 'app', type: page }
+#
     Networking\ElasticSearchBundle\Transformer\PageSnapshotToElasticaTransformer:
         autowire: true
-
-    Networking\ElasticSearchBundle\Provider\MediaProvider:
-        autowire: true
-        public: true
-        tags:
-            - {name: fos_elastica.pager_provider, index: 'app', type: media }
+#
+#    Networking\ElasticSearchBundle\Provider\MediaProvider:
+#        autowire: true
+#        public: true
+#        tags:
+#            - {name: fos_elastica.pager_provider, index: 'app', type: media }
 
     Networking\ElasticSearchBundle\Transformer\MediaToElasticaTransformer:
         autowire: true

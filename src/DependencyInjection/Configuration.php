@@ -17,8 +17,8 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('networking_elastic_search');
+        $treeBuilder = new TreeBuilder('networking_elastic_search');
+        $rootNode = $treeBuilder->getRootNode();
         $rootNode
             ->children()
                 ->scalarNode('base_template')

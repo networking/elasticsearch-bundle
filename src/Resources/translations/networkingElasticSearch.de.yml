@@ -1,6 +1,11 @@
 search:
     placeholder: Suche
     title: Such-Resultat
-    results_found: "{0}Keine Treffer gefunden für die Suche nach '%search_term%'|{1}Zeige 1 Ergebnis von %search_count% Treffer für die Suche nach '%search_term%'|]1,Inf]Zeige Ergebnisse %item-num-from%-%item-num-to% von %search_count% Treffern für die Suche nach '%search_term%'"
+    results_found: >-
+        {count, plural,
+            =0    {Keine Treffer gefunden für die Suche nach '%search_term%'}
+            one   {Zeige 1 Ergebnis von # Treffer für die Suche nach '%search_term%' }
+            other {Zeige Ergebnisse %item-num-from%-%item-num-to% von # Treffern für die Suche nach '%search_term%'}
+        }
     previous: Zurück
     next: Weiter
