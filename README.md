@@ -36,18 +36,18 @@ Update your AppKernel.php
 	}
 ```
 
-Add the following parameters to your parameters.yml
+Add the following parameters to your parameters.yaml
 
     elastic_search_host: localhost
     elastic_search_index: index_name #replace with the name of your search index
     
-In your routing.yml file, and the routing for the search action
+In your routing.yaml file, and the routing for the search action
 
     networking_elastic_search:
-        resource: "@NetworkingElasticSearchBundle/Resources/config/routing.yml"
+        resource: "@NetworkingElasticSearchBundle/Resources/config/routing.yaml"
         prefix:   /
     
-And finally add the type configuration to the config.yml for the minimum 
+And finally add the type configuration to the config.yaml for the minimum 
 indexing of pages and media
     
 ```
@@ -101,7 +101,7 @@ fos_elastica:
 ```
 
 In order to silence Elasticsearch Server errors in production mode add
-the following parameter to the config_prod.yml file. This extension of
+the following parameter to the config_prod.yaml file. This extension of
 the default Elastica Client will prevent a 500 error should the Elastic 
 host no longer be available.
 
