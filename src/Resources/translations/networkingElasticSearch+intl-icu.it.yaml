@@ -1,0 +1,11 @@
+search:
+    placeholder: Ricerca
+    title: Risultato della ricerca
+    results_found: >-
+        {count, plural,
+            =0    {Nessun risultato trovato per la ricerca di '{search_term}'}
+            one   {C'è 1 risultato per la ricerca di '{search_term}'}
+            other {Mostra i risultati {item_num_from}-{item_num_to} di # Risultati per la ricerca di '{search_term}'}
+        }
+    previous: indietro
+    next: Avanti
