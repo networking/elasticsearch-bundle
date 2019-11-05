@@ -3,9 +3,9 @@ search:
     title: Search results
     results_found: >-
         {count, plural,
-            =0    {The search for '{search_term}' returned no result}
-            one   {The search for '{search_term}' returned one result. }
-            other {Showing results {item_num_from}-{item_num_to} from # matches for the search '{search_term}'}
+            =0    {The search for ‘{search_term}‘ returned no result}
+            one   {The search for ‘{search_term}‘ returned one result. }
+            other {Showing results {item_num_from}-{item_num_to} from # matches for the search ‘{search_term}‘}
         }
     previous: Previous
     next: Next
