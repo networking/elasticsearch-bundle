@@ -12,7 +12,7 @@ use Knp\Component\Pager\Paginator;
 use Knp\Component\Pager\PaginatorInterface;
 use Networking\InitCmsBundle\Helper\LanguageSwitcherHelper;
 use Networking\InitCmsBundle\Helper\PageHelper;
-use Networking\InitCmsBundle\Lib\PhpCacheInterface;
+use Networking\InitCmsBundle\Cache\PageCacheInterface;
 use Networking\InitCmsBundle\Model\PageManagerInterface;
 use Sonata\AdminBundle\Admin\Pool;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -51,13 +51,21 @@ class DefaultController extends FrontendPageController
 
     /**
      * DefaultController constructor.
-     *
+     * @param PageCacheInterface $pageCache
+     * @param TokenStorageInterface $tokenStorage
+     * @param AuthorizationCheckerInterface $authorizationChecker
+     * @param Pool $pool
+     * @param LanguageSwitcherHelper $languageSwitcherHelper
+     * @param PageManagerInterface $pageManager
+     * @param PageHelper $pageHelper
      * @param Index $index
+     * @param PaginatorInterface $paginator
+     * @param KernelInterface $kernel
      * @param $baseTemplate
      * @param $searchTemplate
      */
     public function __construct(
-        PhpCacheInterface $phpCache,
+        PageCacheInterface $pageCache,
         TokenStorageInterface $tokenStorage,
         AuthorizationCheckerInterface $authorizationChecker,
         Pool $pool,
@@ -71,7 +79,7 @@ class DefaultController extends FrontendPageController
         $searchTemplate
     ) {
         parent::__construct(
-            $phpCache,
+            $pageCache,
             $tokenStorage,
             $authorizationChecker,
             $pool,
