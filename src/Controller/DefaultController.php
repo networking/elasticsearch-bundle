@@ -184,12 +184,13 @@ class DefaultController extends FrontendPageController
             $pagePaginator->setTemplate('@NetworkingElasticSearch/Pagination/twitter_bootstrap_pagination.html.twig');
         }
 
+
         $params = array_merge(
             $params,
             [
                 'paginator' => $pagePaginator,
                 'search_term' => $searchTerm ? explode(' ', trim($searchTerm)) : false,
-                'url_prefix' => $this->environment == 'dev' ? '/app_dev.php' : '',
+                'url_prefix' => '',
                 'base_template' => $this->baseTemplate,
             ]
         );
