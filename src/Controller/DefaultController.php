@@ -154,13 +154,13 @@ class DefaultController extends FrontendPageController
 
             $localeQuery = new Query\Match('locale', $request->getLocale());
 
+            $missingLocaleQuery =  new Query\Exists('locale');
             $or = new BoolQuery();
-            $or->addShould($localeQuery);
-            $booleanQuery = new BoolQuery();
-            $booleanQuery->addMust($or);
+            $or->addMustNot( $missingLocaleQuery );
 
-            $missingLocaleAgg = new Missing('missing_locale', 'locale');
-            $query->addAggregation($missingLocaleAgg);
+            $booleanQuery = new BoolQuery();
+            $booleanQuery->addShould( $localeQuery );
+            $booleanQuery->addShould( $or );
 
             $query->setPostFilter($booleanQuery);
             $request->query->set('search', $searchTerm);
