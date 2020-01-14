@@ -130,7 +130,8 @@ class PdfDocumentExtractor
         if (self::$binary_location) {
             return self::$binary_location;
         }
-        if (defined('PDFTOTEXT_BINARY_LOCATION')) {
+
+        if (defined('PDFTOTEXT_BINARY_LOCATION') && file_exists(PDFTOTEXT_BINARY_LOCATION)) {
             self::$binary_location = PDFTOTEXT_BINARY_LOCATION;
         } elseif (file_exists('/usr/bin/pdftotext')) {
             self::$binary_location = '/usr/bin/pdftotext';
