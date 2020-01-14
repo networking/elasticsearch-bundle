@@ -93,33 +93,41 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
                 $subcollection = $propertyAccessor->getValue($object, $key);
                 $document->set($key, $this->transformNested($subcollection, $submapping, $document));
             } elseif (isset($mapping['type']) && $mapping['type'] == 'attachment') {
-                $file = $provider->generatePublicUrl($object, 'reference');
-                $attachment = new \SplFileInfo($this->path.$file);
+                if($provider->getFilesystem()->getAdapter() instanceof \Sonata\MediaBundle\Filesystem\Local){
+                    $file = $provider->getFilesystem()->getAdapter()->getDirectory().DIRECTORY_SEPARATOR.$provider->generatePrivateUrl($object, 'reference');
+                }else{
+                    $file = $provider->generatePublicUrl($object, 'reference');
+                }
+                $attachment = new \SplFileInfo($file);
                 $document->addFile($key, $attachment->getPathName(), $object->getContentType());
             } else {
                 switch ($key) {
                     case 'content':
-                        $file = $provider->generatePublicUrl($object, 'reference');
 
+                        if($provider->getFilesystem()->getAdapter() instanceof \Sonata\MediaBundle\Filesystem\Local){
+                            $file = $provider->getFilesystem()->getAdapter()->getDirectory().DIRECTORY_SEPARATOR.$provider->generatePrivateUrl($object, 'reference');
+                        }else{
+                            $file = $provider->generatePublicUrl($object, 'reference');
+                        }
 
                         if('application/pdf' == $object->getContentType()){
-	                        $value = PdfDocumentExtractor::extract($this->path.$file);
+	                        $value = PdfDocumentExtractor::extract($file);
                         }
 
                         if(substr($file, -4) === 'docx'){
-                        	$value = $this->readDocx( $this->path . $file);
+                        	$value = $this->readDocx($file);
                         }
 
                         if(substr($file, -3) === 'doc'){
-                        	$value = $this->readDoc( $this->path . $file);
+                        	$value = $this->readDoc($file);
                         }
 
                         if(substr($file, -4) === 'xlsx'){
-                        	$value = $this->readXlsx( $this->path . $file);
+                        	$value = $this->readXlsx($file);
                         }
 
                         if(substr($file, -3) === 'xls'){
-                        	$value = $this->readXls( $this->path . $file);
+                        	$value = $this->readXls($file);
                         }
 
                         if(!$value){
