@@ -9,6 +9,7 @@
 namespace Networking\ElasticSearchBundle\Transformer;
 
 use Networking\InitCmsBundle\Entity\Media;
+use Networking\InitCmsBundle\Entity\PageSnapshot;
 
 class IndexableChecker
 {
@@ -17,6 +18,17 @@ class IndexableChecker
         if ($object instanceof Media) {
         	return $object->getEnabled();
         }
+
+
+        if($object instanceof PageSnapshot){
+
+            if($object->getPage()->getStatus() == 'status_published' and $object->getPage()->getVisibility() == 'public' ){
+                return true;
+            }
+        }
+
+
+
         return false;
     }
 }
