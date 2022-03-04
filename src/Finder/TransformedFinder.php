@@ -5,6 +5,7 @@ use Elastica\Query;
 use Elastica\ResultSet;
 use FOS\ElasticaBundle\Finder\TransformedFinder as FOSTransformedFinder;
 use Networking\ElasticSearchBundle\Paginator\RawPaginatorAdapter;
+use Networking\ElasticSearchBundle\Paginator\RawResults;
 
 class TransformedFinder extends FOSTransformedFinder
 {
@@ -18,7 +19,7 @@ class TransformedFinder extends FOSTransformedFinder
     /**
      * @param $query
      */
-    public function findRawResultSet($query, ?int $limit = null, array $options = []): ResultSet
+    public function findRawResultSet($query, ?int $limit = null, array $options = []): RawResults
     {
 
         $queryObject = Query::create($query);
@@ -26,6 +27,6 @@ class TransformedFinder extends FOSTransformedFinder
             $queryObject->setSize($limit);
         }
 
-        return $this->searchable->search($queryObject, $options);
+        return new RawResults($this->searchable->search($queryObject, $options), $this->searchable);
     }
 }

@@ -102,13 +102,12 @@ class SearchRepository extends Repository
      * @param int $limit
      * @return array|null
      */
-    public function findRawResults(string $searchTerm, ?string $locale = null): ?ResultSet
+    public function findRawResults(string $searchTerm, ?string $locale = null): ?RawResults
     {
         if ($searchTerm) {
             $query = $this->createQuery($searchTerm, $locale);
 
-            $resultSet = $this->finder->findRawResultSet($query);
-            return new RawResults($resultSet, $this->index);
+            return $this->finder->findRawResultSet($query);
         }
 
         return null;
