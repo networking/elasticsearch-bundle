@@ -57,7 +57,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
      *
      * @return Document
      **/
-    public function transform($object, array $fields)
+    public function transform(object $object, array $fields): Document
     {
         $content = [];
         /** @var $page \Networking\InitCmsBundle\Entity\BasePage */
@@ -68,11 +68,15 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
         );
 
         foreach ($page->getLayoutBlock() as $layoutBlock) {
+
+            $contentItem = $layoutBlock;
+            if(!$layoutBlock instanceof SearchableContentInterface){
             $contentItem = $this->serializer->deserialize(
                 $layoutBlock->getSnapshotContent(),
                 $layoutBlock->getClassType(),
                 'json'
             );
+            }
 
             if ($contentItem instanceof SearchableContentInterface || $contentItem instanceof TextInterface) {
                 $content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');

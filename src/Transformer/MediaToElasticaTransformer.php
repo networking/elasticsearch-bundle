@@ -12,6 +12,7 @@ namespace Networking\ElasticSearchBundle\Transformer;
 
 use Elastica\Document;
 use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
+use Networking\ElasticSearchBundle\Tika\TikaWrapper\TikaClient;
 use Networking\InitCmsBundle\Entity\Media;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\BaseReader;
@@ -70,7 +71,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
      *
      * @return Document
      **/
-    public function transform($object, array $fields)
+    public function transform(object $object, array $fields): Document
     {
         $propertyAccessor = new PropertyAccessor();
         $identifier = $propertyAccessor->getValue($object, $this->options['identifier']);
@@ -131,7 +132,13 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
                         }
 
                         if(!$value){
-                        	$value = $object->getDescription();
+                            $tikaClient = TikaClient::prepareClient();
+                            try {
+                                $value = $tikaClient->getMainText($file);
+
+                            }catch (\Exception $e){
+                                $value = $object->getDescription();
+                            }
                         }
                         break;
                     case 'locale':

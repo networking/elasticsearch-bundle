@@ -13,33 +13,46 @@ services:
       autowire: true
       public: true
       arguments:
-          $index: '@fos_elastica.index.app'
+          $index: '@Networking\ElasticSearchBundle\Elastica\MultiIndex'
           $baseTemplate: '%networking_elastic_search.base_template%'
           $searchTemplate: '%networking_elastic_search.search_template%'
       tags:
           - { name: 'controller.service_arguments'}
 
-#
-#    Networking\ElasticSearchBundle\Provider\PageSnapshotProvider:
-#        autowire: true
-#        public: true
-#        tags:
-#            - {name: fos_elastica.pager_provider, index: 'app', type: page }
-#
+    Networking\ElasticSearchBundle\Repository\SearchRepository:
+        public: true
+
     Networking\ElasticSearchBundle\Transformer\PageSnapshotToElasticaTransformer:
         autowire: true
-#
-#    Networking\ElasticSearchBundle\Provider\MediaProvider:
-#        autowire: true
-#        public: true
-#        tags:
-#            - {name: fos_elastica.pager_provider, index: 'app', type: media }
+
 
     Networking\ElasticSearchBundle\Transformer\MediaToElasticaTransformer:
         autowire: true
         arguments:
             $router: '@router.default'
             $path: '%env(DOCUMENT_ROOT)%'
+
+    Networking\ElasticSearchBundle\Transformer\ElasticaToModelTransformerCollection:
+        arguments:
+            $transformers: !tagged_iterator { tag: 'fos_elastica.elastica_to_model_transformer', index_by: 'index' }
+
+    Networking\ElasticSearchBundle\Elastica\MultiIndex:
+        arguments:
+            $name: '%env(ELASTICSEARCH_INDEX)%'
+        calls:
+            - [ addIndices, [ !tagged_iterator { tag: 'fos_elastica.index', index_by: 'index' } ] ]
+
+    Elastica\SearchableInterface: '@Networking\ElasticSearchBundle\Elastica\MultiIndex'
+
+    FOS\ElasticaBundle\Transformer\ElasticaToModelTransformerInterface: '@Networking\ElasticSearchBundle\Transformer\ElasticaToModelTransformerCollection'
+
+    Networking\ElasticSearchBundle\Finder\TransformedFinder:
+        arguments:
+            $searchable: '@Networking\ElasticSearchBundle\Elastica\MultiIndex'
+            $transformer: '@Networking\ElasticSearchBundle\Transformer\ElasticaToModelTransformerCollection'
+
+    FOS\ElasticaBundle\Finder\PaginatedFinderInterface: '@Networking\ElasticSearchBundle\Finder\TransformedFinder'
+    FOS\ElasticaBundle\Finder\FinderInterface: '@FOS\ElasticaBundle\Finder\TransformedFinder'
 
     Sonata\MediaBundle\Provider\Pool:
         alias: 'sonata.media.pool'

@@ -11,11 +11,24 @@
 
 namespace Networking\ElasticSearchBundle\Paginator;
 
+use Elastica\Query;
+use Elastica\SearchableInterface;
 use FOS\ElasticaBundle\Paginator\RawPaginatorAdapter as FOSRawPaginatorAdapter;
 /**
  * @author Yorkie Chadwick <y.chadwick@networking.ch>
  */
 class RawPaginatorAdapter extends FOSRawPaginatorAdapter {
+
+    /**
+     * @var SearchableInterface 
+     */
+    protected $index;
+
+    public function __construct(SearchableInterface $searchable, Query $query, array $options = [])
+    {
+        $this->index = $searchable;
+        parent::__construct($searchable, $query, $options);
+    }
 
     /**
      * Returns the paginated results.
@@ -24,6 +37,6 @@ class RawPaginatorAdapter extends FOSRawPaginatorAdapter {
      */
     public function getResults($offset, $itemCountPerPage)
     {
-        return new RawResults($this->getElasticaResults($offset, $itemCountPerPage));
+        return new RawResults($this->getElasticaResults($offset, $itemCountPerPage), $this->index);
     }
 }

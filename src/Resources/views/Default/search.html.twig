@@ -52,6 +52,6 @@
 
         {% endif %}
     {% else %}
-        <p>{{ 'search.results_found'|trans({'count': 0 '{search_term}': search_term|join(' ')},'networkingElasticSearch' ) }} </p>
+        <p>{{ 'search.results_found'|trans({'count': 0, '{search_term}': search_term|join(' ')},'networkingElasticSearch' ) }} </p>
     {% endif %}
 {% endblock content_row %}

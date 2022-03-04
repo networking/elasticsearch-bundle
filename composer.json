@@ -12,10 +12,10 @@
         }
     ],
     "require": {
-        "php": ">=7.1",
-        "friendsofsymfony/elastica-bundle": "^5.1",
-        "networking/init-cms-bundle": "^4.0",
-        "vaites/php-apache-tika": "^0.7",
+        "php": ">=7.4",
+        "friendsofsymfony/elastica-bundle": "^6.1",
+        "networking/init-cms-bundle": "^4.4",
+        "vaites/php-apache-tika": "^1.2",
         "phpoffice/phpspreadsheet": "^1.4"
     },
     "autoload": {
