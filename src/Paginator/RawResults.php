@@ -11,7 +11,7 @@
 
 namespace Networking\ElasticSearchBundle\Paginator;
 
-use App\Search\Elastica\MultiIndex;
+use Networking\ElasticSearchBundle\Elastica\MultiIndex;
 use Elastica\Result;
 use Elastica\ResultSet;
 use Elastica\Index;
@@ -46,7 +46,9 @@ class RawResults extends RawPartialResults implements \Countable, \Iterator
         $this->index = $index;
         parent::__construct($resultSet);
 
+
         $this->_results = array_map(function (Result $result) {
+
             $source = $result->getSource();
             $source['id'] = $result->getId();
             $source['type'] = $this->getType($result->getIndex());
@@ -130,7 +132,6 @@ class RawResults extends RawPartialResults implements \Countable, \Iterator
         if(!$this->index instanceof MultiIndex){
             return $name;
         }
-
         foreach ($this->index->getIndices() as $index){
             if(strpos($name, $index) === 0){
                 return str_replace($this->index->getName(), '', $index);
