@@ -1,6 +1,6 @@
 <?php
 
-namespace Networking\ElasticSearchBundle\Tika\TikaWrapper;
+namespace Networking\ElasticSearchBundle\Tika;
 
 use Symfony\Component\Process\Process;
 use SplFileInfo;

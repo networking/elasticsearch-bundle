@@ -12,7 +12,7 @@ namespace Networking\ElasticSearchBundle\Transformer;
 
 use Elastica\Document;
 use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
-use Networking\ElasticSearchBundle\Tika\TikaWrapper\TikaClient;
+use Networking\ElasticSearchBundle\Tika\TikaClient;
 use Networking\InitCmsBundle\Entity\Media;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\BaseReader;
