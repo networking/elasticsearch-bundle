@@ -10,12 +10,14 @@
 
 namespace Networking\ElasticSearchBundle\Transformer;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Elastica\Document;
 use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerInterface;
-use Networking\InitCmsBundle\Entity\PageSnapshot;
 use Networking\ElasticSearchBundle\Model\SearchableContentInterface;
+use Networking\InitCmsBundle\Entity\PageSnapshot;
+use Networking\InitCmsBundle\Helper\PageHelper;
 use Networking\InitCmsBundle\Model\TextInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyPath;
@@ -40,48 +42,57 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
     protected $serializer;
 
     /**
-     * Instanciates a new Mapper.
-     *
-     * @param \JMS\Serializer\SerializerInterface $serializer
+     * @var PageHelper
      */
-    public function __construct(SerializerInterface $serializer)
-    {
+    protected $pageHelper;
+
+    /**
+     * @var ManagerRegistry
+     */
+    protected $managerRegistry;
+
+    /**
+     * @param SerializerInterface $serializer
+     * @param PageHelper $pageHelper
+     */
+    public function __construct(
+        SerializerInterface $serializer,
+        PageHelper $pageHelper,
+        ManagerRegistry $managerRegistry
+    ) {
         $this->serializer = $serializer;
+        $this->pageHelper = $pageHelper;
+        $this->managerRegistry = $managerRegistry;
     }
 
     /**
      * Transforms an PageSnapshot object into an elastica object having the required keys.
      *
      * @param PageSnapshot $object the object to convert
-     * @param array        $fields the keys we want to have in the returned array
+     * @param array $fields the keys we want to have in the returned array
      *
      * @return Document
      **/
     public function transform(object $object, array $fields): Document
     {
         $content = [];
-        /** @var $page \Networking\InitCmsBundle\Entity\BasePage */
-        $page = $this->serializer->deserialize(
-            $object->getVersionedData(),
-            $object->getResourceName(),
-            'json'
-        );
-
+        $page = $this->pageHelper->unserializePageSnapshotData($object, true);
         foreach ($page->getLayoutBlock() as $layoutBlock) {
 
             $contentItem = $layoutBlock;
-            if(!$layoutBlock instanceof SearchableContentInterface){
-            $contentItem = $this->serializer->deserialize(
-                $layoutBlock->getSnapshotContent(),
-                $layoutBlock->getClassType(),
-                'json'
-            );
+            if (!$layoutBlock instanceof SearchableContentInterface) {
+                $contentItem = $this->serializer->deserialize(
+                    $layoutBlock->getSnapshotContent(),
+                    $layoutBlock->getClassType(),
+                    'json'
+                );
             }
 
             if ($contentItem instanceof SearchableContentInterface || $contentItem instanceof TextInterface) {
                 $content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
             }
         }
+
 
         $identifierProperty = new PropertyPath($this->options['identifier']);
 
@@ -131,15 +142,17 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
         }
         $document->set('type', 'Page');
 
+        $this->managerRegistry->getManagerForClass(get_class($page))->refresh($page);
+
         return $document;
     }
 
     /**
      * transform a nested document or an object property into an array of ElasticaDocument.
      *
-     * @param array    $objects the object to convert
-     * @param array    $fields  the keys we want to have in the returned array
-     * @param Document $parent  the parent document
+     * @param array $objects the object to convert
+     * @param array $fields the keys we want to have in the returned array
+     * @param Document $parent the parent document
      *
      * @return array
      */
@@ -175,7 +188,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
             if ($v instanceof \DateTime) {
                 $v = $v->format('c');
             } elseif (!is_scalar($v) && !is_null($v)) {
-                $v = (string) $v;
+                $v = (string)$v;
             }
         };
 
