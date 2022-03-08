@@ -91,6 +91,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
             if ($contentItem instanceof SearchableContentInterface || $contentItem instanceof TextInterface) {
                 $content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
             }
+            $this->managerRegistry->getManagerForClass(get_class($page))->refresh($contentItem);
         }
 
 
