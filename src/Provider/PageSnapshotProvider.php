@@ -12,6 +12,7 @@ namespace Networking\ElasticSearchBundle\Provider;
 
 use Doctrine\ORM\Query;
 use FOS\ElasticaBundle\Provider\PagerfantaPager;
+use FOS\ElasticaBundle\Provider\PagerInterface;
 use FOS\ElasticaBundle\Provider\PagerProviderInterface;
 use Networking\InitCmsBundle\Model\PageSnapshotManagerInterface;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
@@ -37,7 +38,7 @@ class PageSnapshotProvider implements PagerProviderInterface
         $this->pageSnapshotManager = $pageSnapshotManager;
     }
 
-    public function provide(array $options = [])
+    public function provide(array $options = []): PagerInterface
     {
         $query = $this->getAllSortByQuery();
 

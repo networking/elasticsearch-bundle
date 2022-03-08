@@ -57,3 +57,7 @@ services:
     Sonata\MediaBundle\Provider\Pool:
         alias: 'sonata.media.pool'
 
+    Networking\ElasticSearchBundle\Provider\PageSnapshotProvider:
+        tags:
+            - { name: fos_elastica.pager_provider, index: page }
+
