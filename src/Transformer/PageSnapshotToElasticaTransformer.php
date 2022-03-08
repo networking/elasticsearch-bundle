@@ -16,6 +16,7 @@ use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerInterface;
 use Networking\ElasticSearchBundle\Model\SearchableContentInterface;
+use Networking\FormGeneratorBundle\Entity\FormPageContent;
 use Networking\InitCmsBundle\Entity\PageSnapshot;
 use Networking\InitCmsBundle\Helper\PageHelper;
 use Networking\InitCmsBundle\Model\TextInterface;
@@ -79,19 +80,23 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
         $page = $this->pageHelper->unserializePageSnapshotData($object, true);
         foreach ($page->getLayoutBlock() as $layoutBlock) {
 
-            $contentItem = $layoutBlock;
-            if (!$layoutBlock instanceof SearchableContentInterface) {
-                $contentItem = $this->serializer->deserialize(
-                    $layoutBlock->getSnapshotContent(),
-                    $layoutBlock->getClassType(),
-                    'json'
-                );
+
+            $classImplements = class_implements($layoutBlock->getClassType());
+
+            if(!array_key_exists(SearchableContentInterface::class, $classImplements)){
+                continue;
             }
 
-            if ($contentItem instanceof SearchableContentInterface || $contentItem instanceof TextInterface) {
-                $content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
-            }
+            $contentItem = $this->serializer->deserialize(
+                $layoutBlock->getSnapshotContent(),
+                $layoutBlock->getClassType(),
+                'json'
+            );
+
+           $content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
+
             $this->managerRegistry->getManagerForClass(get_class($page))->refresh($contentItem);
+
         }
 
 
