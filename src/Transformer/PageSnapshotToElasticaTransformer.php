@@ -95,8 +95,9 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
 
            $content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
 
-            $this->managerRegistry->getManagerForClass(get_class($page))->refresh($contentItem);
-
+            if($this->managerRegistry->getManagerForClass(get_class($contentItem))->contains($page)){
+                $this->managerRegistry->getManagerForClass(get_class($page))->refresh($page);
+            }
         }
 
 
@@ -148,7 +149,9 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
         }
         $document->set('type', 'Page');
 
-        $this->managerRegistry->getManagerForClass(get_class($page))->refresh($page);
+        if($this->managerRegistry->getManagerForClass(get_class($page))->contains($page)){
+            $this->managerRegistry->getManagerForClass(get_class($page))->refresh($page);
+        }
 
         return $document;
     }
