@@ -95,8 +95,8 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
 
            $content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
 
-            if($this->managerRegistry->getManagerForClass(get_class($contentItem))->contains($page)){
-                $this->managerRegistry->getManagerForClass(get_class($page))->refresh($page);
+            if($this->managerRegistry->getManagerForClass(get_class($contentItem))->contains($contentItem)){
+                $this->managerRegistry->getManagerForClass(get_class($contentItem))->refresh($contentItem);
             }
         }
 
