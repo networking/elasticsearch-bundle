@@ -12,9 +12,9 @@
         }
     ],
     "require": {
-        "php": ">=7.4",
+        "php": ">=7.4 || ^8.0",
         "friendsofsymfony/elastica-bundle": "^6.1",
-        "networking/init-cms-bundle": "^4.4",
+        "networking/init-cms-bundle": "^4.4 || ^5.0 || dev-upgrade5",
         "vaites/php-apache-tika": "^1.2",
         "phpoffice/phpspreadsheet": "^1.4"
     },
@@ -23,7 +23,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "4.x-dev"
+            "dev-master": "5.x-dev"
         }
     }
 }
