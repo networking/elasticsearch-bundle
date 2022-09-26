@@ -14,7 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use FOS\ElasticaBundle\Provider\PagerfantaPager;
 use FOS\ElasticaBundle\Provider\PagerProviderInterface;
 use Networking\InitCmsBundle\Entity\Media;
-use Pagerfanta\Adapter\DoctrineORMAdapter;
+use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
 
 /**
@@ -36,7 +36,7 @@ class MediaProvider implements PagerProviderInterface
     {
         $query = $this->createQueryBuilder();
 
-        $pager = new PagerfantaPager(new Pagerfanta(new DoctrineORMAdapter($query)));
+        $pager = new PagerfantaPager(new Pagerfanta(new QueryAdapter($query)));
 
         return $pager;
     }

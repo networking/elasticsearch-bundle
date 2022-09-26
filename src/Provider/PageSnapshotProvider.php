@@ -16,6 +16,7 @@ use FOS\ElasticaBundle\Provider\PagerInterface;
 use FOS\ElasticaBundle\Provider\PagerProviderInterface;
 use Networking\InitCmsBundle\Model\PageSnapshotManagerInterface;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
+use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
 
 /**
@@ -42,7 +43,7 @@ class PageSnapshotProvider implements PagerProviderInterface
     {
         $query = $this->getAllSortByQuery();
 
-        $pager = new PagerfantaPager(new Pagerfanta(new DoctrineORMAdapter($query)));
+        $pager = new PagerfantaPager(new Pagerfanta(new QueryAdapter($query)));
 
         return $pager;
     }

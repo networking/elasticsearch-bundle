@@ -96,12 +96,16 @@ class DefaultController extends FrontendPageController
 
     }
 
+    public function searchAction(Request $request){
+        return $this->search($request);
+    }
+
     /**
      * @param Request $request
      *
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function searchAction(Request $request)
+    public function search(Request $request)
     {
         $params = [];
         try {
