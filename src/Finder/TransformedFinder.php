@@ -9,7 +9,7 @@ use Networking\ElasticSearchBundle\Paginator\RawResults;
 
 class TransformedFinder extends FOSTransformedFinder
 {
-    public function createRawPaginatorAdapter($query, array $options = [])
+    public function createRawPaginatorAdapter($query, array $options = []): PaginatorAdapterInterface
     {
         $query = Query::create($query);
 
