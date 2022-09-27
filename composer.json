@@ -14,7 +14,7 @@
     "require": {
         "php": ">=7.4 || ^8.0",
         "friendsofsymfony/elastica-bundle": "^6.1",
-        "networking/init-cms-bundle": "^4.4 || ^5.0 || dev-upgrade5",
+        "networking/init-cms-bundle": "^4.4 || ^5.0 || dev-master",
         "vaites/php-apache-tika": "^1.2",
         "phpoffice/phpspreadsheet": "^1.4"
     },
