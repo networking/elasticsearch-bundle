@@ -156,7 +156,7 @@ class DefaultController extends FrontendPageController
             $query = new Query($disMax);
 
 
-            $localeQuery = new Query\Match('locale', $request->getLocale());
+            $localeQuery = new Query\MatchQuery('locale', $request->getLocale());
 
             $missingLocaleQuery =  new Query\Exists('locale');
             $or = new BoolQuery();
