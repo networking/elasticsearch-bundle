@@ -15,6 +15,7 @@ use Networking\InitCmsBundle\Helper\PageHelper;
 use Networking\InitCmsBundle\Cache\PageCacheInterface;
 use Networking\InitCmsBundle\Model\PageManagerInterface;
 use Sonata\AdminBundle\Admin\Pool;
+use Symfony\Bridge\Twig\Attribute\Template;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -116,8 +117,8 @@ class DefaultController extends FrontendPageController
 
         $template = $request->get('_template', $this->searchTemplate);
 
-        if ($template instanceof \Sensio\Bundle\FrameworkExtraBundle\Configuration\Template) {
-            $template = $template->getTemplate();
+        if ($template instanceof Template) {
+            $template = $template->template;
         }
 
         if ($params instanceof RedirectResponse) {
