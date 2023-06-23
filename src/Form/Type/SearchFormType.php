@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * This file is part of the forel package.
  *
@@ -7,7 +10,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
 namespace Networking\ElasticSearchBundle\Form\Type;
 
 use Symfony\Component\Form\AbstractType;
@@ -38,14 +40,14 @@ class SearchFormType extends AbstractType
             ])
         ;
     }
-    public function getName()
+    public function getName(): string
     {
         return 'networking_elastic_search';
     }
     /**
      * To implement NavbarFormTypeInterface.
      */
-    public function getRoute()
+    public function getRoute(): string
     {
         return 'site_search'; // return here the name of the route the form should point to
     }

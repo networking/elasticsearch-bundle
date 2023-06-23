@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Networking\ElasticSearchBundle\Repository;
 
 use Elastica\Query;
@@ -68,12 +70,10 @@ class SearchRepository extends Repository
         return $query;
     }
     /**
-     * @param string $searchTerm
      * @param int $page
      * @param int $limit
-     * @return \Pagerfanta\Pagerfanta|null
      */
-    public function findWithPaginator(string $searchTerm, ?string $locale = null)
+    public function findWithPaginator(string $searchTerm, ?string $locale = null): ?\Pagerfanta\Pagerfanta
     {
         if (!$searchTerm) {
             return null;
@@ -97,7 +97,6 @@ class SearchRepository extends Repository
     }
 
     /**
-     * @param string $searchTerm
      * @param int $page
      * @param int $limit
      * @return array|null

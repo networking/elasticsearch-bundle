@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Created by PhpStorm.
  * User: yorkie
  * Date: 19.02.18
  * Time: 09:36.
  */
-
 namespace Networking\ElasticSearchBundle\Transformer;
 
 use Networking\InitCmsBundle\Entity\Media;

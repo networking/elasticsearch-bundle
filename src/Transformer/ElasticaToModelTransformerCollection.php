@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Networking\ElasticSearchBundle\Transformer;
 
 use Elastica\Result;
@@ -51,9 +53,7 @@ class ElasticaToModelTransformerCollection implements ElasticaToModelTransformer
      */
     public function getObjectClass(): string
     {
-        return implode(',', array_map(function (ElasticaToModelTransformerInterface $transformer) {
-            return $transformer->getObjectClass();
-        }, $this->transformers));
+        return implode(',', array_map(fn(ElasticaToModelTransformerInterface $transformer) => $transformer->getObjectClass(), $this->transformers));
     }
 
     /**
@@ -61,9 +61,7 @@ class ElasticaToModelTransformerCollection implements ElasticaToModelTransformer
      */
     public function getIdentifierField(): string
     {
-        return array_map(function (ElasticaToModelTransformerInterface $transformer) {
-            return $transformer->getIdentifierField();
-        }, $this->transformers)[0];
+        return array_map(fn(ElasticaToModelTransformerInterface $transformer) => $transformer->getIdentifierField(), $this->transformers)[0];
     }
 
     /**
@@ -87,9 +85,7 @@ class ElasticaToModelTransformerCollection implements ElasticaToModelTransformer
             $identifierGetter = 'get'.ucfirst($this->transformers[$type]->getIdentifierField());
             $transformed[$type] = array_combine(
                 array_map(
-                    function ($o) use ($identifierGetter) {
-                        return $o->$identifierGetter();
-                    },
+                    fn($o) => $o->$identifierGetter(),
                     $transformedObjects
                 ),
                 $transformedObjects
@@ -110,7 +106,7 @@ class ElasticaToModelTransformerCollection implements ElasticaToModelTransformer
     public function matchIndexName($name)
     {
         foreach ($this->index->getIndices() as $index){
-            if(strpos($name, $index) === 0){
+            if(str_starts_with((string) $name, (string) $index)){
                 return $index;
             }
         }

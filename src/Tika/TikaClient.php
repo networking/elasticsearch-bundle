@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Networking\ElasticSearchBundle\Tika;
 
 use Symfony\Component\Process\Process;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Networking\ElasticSearchBundle\Transformer;
 
 /**
@@ -83,7 +85,7 @@ class PdfDocumentExtractor
         return self::pdf2text($filename);
     }
 
-    protected static function commandline($filename)
+    protected static function commandline($filename): string|bool|null
     {
         $binary_path = self::get_binary_path();
         $command = escapeshellarg(realpath($binary_path)).' '.escapeshellarg(realpath($filename)).' -enc UTF-8 -';
@@ -105,7 +107,7 @@ class PdfDocumentExtractor
         $pdf->setFilename($filename);
         try {
             $pdf->decodePDF();
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return '';
         }
         $content = $pdf->output();
@@ -125,7 +127,7 @@ class PdfDocumentExtractor
      * @return string|bool Returns the path to the pdftotext binary, or
      *                     boolean false if it cannot be found
      */
-    protected static function get_binary_path()
+    protected static function get_binary_path(): string|bool
     {
         if (self::$binary_location) {
             return self::$binary_location;

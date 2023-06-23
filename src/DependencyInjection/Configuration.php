@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Networking\ElasticSearchBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -22,7 +24,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('base_template')
-                    ->defaultValue('::layout.html.twig')
+                    ->defaultValue('base.html.twig')
                 ->end()
                 ->scalarNode('search_template')
                     ->defaultValue('@NetworkingElasticSearch/Default/search.html.twig')

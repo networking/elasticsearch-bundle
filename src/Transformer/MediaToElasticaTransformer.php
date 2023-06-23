@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * This file is part of the forel package.
  *
@@ -7,7 +10,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
 namespace Networking\ElasticSearchBundle\Transformer;
 
 use Elastica\Document;
@@ -36,11 +38,6 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
     protected $pool;
 
     /**
-     * @var string
-     */
-    protected $path;
-
-    /**
      * Optional parameters.
      *
      * @var array
@@ -52,15 +49,13 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
     /**
      * MediaToElasticaTransformer constructor.
      *
-     * @param RouterInterface $router
-     * @param Pool            $pool
      * @param $path
+     * @param string $path
      */
-    public function __construct(RouterInterface $router, Pool $pool, $path)
+    public function __construct(RouterInterface $router, Pool $pool, protected $path)
     {
         $this->router = $router;
         $this->pool = $pool;
-        $this->path = $path;
     }
 
     /**
@@ -115,19 +110,19 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
 	                        $value = PdfDocumentExtractor::extract($file);
                         }
 
-                        if(substr($file, -4) === 'docx'){
+                        if(str_ends_with($file, 'docx')){
                         	$value = $this->readDocx($file);
                         }
 
-                        if(substr($file, -3) === 'doc'){
+                        if(str_ends_with($file, 'doc')){
                         	$value = $this->readDoc($file);
                         }
 
-                        if(substr($file, -4) === 'xlsx'){
+                        if(str_ends_with($file, 'xlsx')){
                         	$value = $this->readXlsx($file);
                         }
 
-                        if(substr($file, -3) === 'xls'){
+                        if(str_ends_with($file, 'xls')){
                         	$value = $this->readXls($file);
                         }
 
@@ -136,7 +131,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
                             try {
                                 $value = $tikaClient->getMainText($file);
 
-                            }catch (\Exception $e){
+                            }catch (\Exception){
                                 $value = $object->getDescription();
                             }
                         }
@@ -178,7 +173,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
      */
     protected function transformNested($objects, array $fields, $parent)
     {
-        if (is_array($objects) || $objects instanceof \Traversable || $objects instanceof \ArrayAccess) {
+        if (is_iterable($objects) || $objects instanceof \ArrayAccess) {
             $documents = [];
             foreach ($objects as $object) {
                 $document = $this->transform($object, $fields);
@@ -198,11 +193,9 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
     /**
      * Attempts to convert any type to a string or an array of strings.
      *
-     * @param mixed $value
      *
-     * @return string|array
      */
-    protected function normalizeValue($value)
+    protected function normalizeValue(mixed $value): string|array
     {
         $normalizeValue = function (&$v) {
             if ($v instanceof \DateTime) {
@@ -212,7 +205,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
             }
         };
 
-        if (is_array($value) || $value instanceof \Traversable || $value instanceof \ArrayAccess) {
+        if (is_iterable($value) || $value instanceof \ArrayAccess) {
             $value = is_array($value) ? $value : iterator_to_array($value);
             array_walk_recursive($value, $normalizeValue);
         } else {
@@ -227,7 +220,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
 	 *
 	 * @return null|string|string[]
 	 */
-	protected function readDoc($file) {
+	protected function readDoc($file): null|string|array {
 		$fileHandle = fopen($file, "r");
 		$line = @fread($fileHandle, filesize($file));
 		$lines = explode(chr(0x0D),$line);
@@ -246,11 +239,9 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
 	}
 
 	/**
-	 * @param $file
-	 *
-	 * @return bool|string
-	 */
-	protected function readDocx($file){
+  * @param $file
+  */
+ protected function readDocx($file): bool|string{
 
 		$content = '';
 
@@ -304,13 +295,11 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
 	}
 
 	/**
-	 * @param BaseReader $reader
-	 * @param $file
-	 *
-	 * @return string
-	 * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
-	 */
-	protected function readExcel(BaseReader $reader, $file)
+  * @param $file
+  *
+  * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
+  */
+ protected function readExcel(BaseReader $reader, $file): string
 	{
 		$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($file);

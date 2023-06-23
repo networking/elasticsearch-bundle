@@ -9,7 +9,7 @@
         {% set search_value  = '' %}
     {% endif %}
 
-    {% if search_term is defined %}
+    {% if search_term is defined and search_term %}
         <h1>{{ 'search.title'|trans( {}, 'networkingElasticSearch') }}</h1>
         <p class="ohne-einzug">
             {{ 'search.results_found'|trans(

@@ -20,7 +20,7 @@ class MultiIndex extends Index
      *
      * @var array
      */
-    protected $_indices = [];
+    protected array $_indices = [];
 
 
     /**
@@ -32,7 +32,7 @@ class MultiIndex extends Index
      *
      * @return $this
      */
-    public function addIndex($index)
+    public function addIndex(\Elastica\Index|string $index): self
     {
         if ($index instanceof Index) {
             $index = $index->getName();
@@ -50,11 +50,10 @@ class MultiIndex extends Index
     /**
      * Add array of indices at once.
      *
-     * @param \Traversable $indices
      *
      * @return $this
      */
-    public function addIndices(\Traversable $indices)
+    public function addIndices(\Traversable $indices): self
     {
         $indices = iterator_to_array($indices);
         /** @var \FOS\ElasticaBundle\Elastica\Index $index */
@@ -70,7 +69,7 @@ class MultiIndex extends Index
      *
      * @return array List of index names
      */
-    public function getIndices()
+    public function getIndices(): array
     {
         return $this->_indices;
     }
@@ -85,7 +84,7 @@ class MultiIndex extends Index
     public function createSearch($query = '', $options = null, ?BuilderInterface $builder = null): Search
     {
         $search = new Search($this->getClient(), $builder);
-        $search->addIndices($this->getIndices());
+        $search->addIndicesByName($this->getIndices());
         $search->setOptionsAndQuery($options, $query);
 
         return $search;

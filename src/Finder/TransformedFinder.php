@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Networking\ElasticSearchBundle\Finder;
 
 use Elastica\Query;

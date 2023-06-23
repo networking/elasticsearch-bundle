@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * This file is part of the forel package.
  *
@@ -7,7 +10,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
 namespace Networking\ElasticSearchBundle\Transformer;
 
 use Doctrine\Persistence\ManagerRegistry;
@@ -52,10 +54,6 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
      */
     protected $managerRegistry;
 
-    /**
-     * @param SerializerInterface $serializer
-     * @param PageHelper $pageHelper
-     */
     public function __construct(
         SerializerInterface $serializer,
         PageHelper $pageHelper,
@@ -93,10 +91,10 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
                 'json'
             );
 
-           $content[] = html_entity_decode($contentItem->getSearchableContent(), null, 'UTF-8');
+           $content[] = html_entity_decode(string: (string) $contentItem->getSearchableContent(), encoding:  'UTF-8');
 
-            if($this->managerRegistry->getManagerForClass(get_class($contentItem))->contains($contentItem)){
-                $this->managerRegistry->getManagerForClass(get_class($contentItem))->refresh($contentItem);
+            if($this->managerRegistry->getManagerForClass($contentItem::class)->contains($contentItem)){
+                $this->managerRegistry->getManagerForClass($contentItem::class)->refresh($contentItem);
             }
         }
 
@@ -106,7 +104,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $identifier = $propertyAccessor->getValue($page, $identifierProperty);
 
-        $document = new Document($identifier);
+        $document = new Document((string) $identifier);
 
         foreach ($fields as $key => $mapping) {
             $property = new PropertyPath($key);
@@ -127,30 +125,20 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
                     $document->addFileContent($key, $attachment);
                 }
             } else {
-                switch ($key) {
-                    case 'name':
-                        $value = $page->getPageName();
-                        break;
-                    case 'content':
-                        $value = implode("\n", $content);
-                        break;
-                    case 'url':
-                        $value = $object->getPath();
-                        break;
-                    case 'type':
-                        $value = 'Page';
-                        break;
-                    default:
-                        $value = $propertyAccessor->getValue($page, $property);
-                        break;
-                }
+                $value = match ($key) {
+                    'name' => $page->getPageName(),
+                    'content' => implode("\n", $content),
+                    'url' => $object->getPath(),
+                    'type' => 'Page',
+                    default => $propertyAccessor->getValue($page, $property),
+                };
                 $document->set($key, $this->normalizeValue($value));
             }
         }
         $document->set('type', 'Page');
 
-        if($this->managerRegistry->getManagerForClass(get_class($page))->contains($page)){
-            $this->managerRegistry->getManagerForClass(get_class($page))->refresh($page);
+        if($this->managerRegistry->getManagerForClass($page::class)->contains($page)){
+            $this->managerRegistry->getManagerForClass($page::class)->refresh($page);
         }
 
         return $document;
@@ -167,7 +155,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
      */
     protected function transformNested($objects, array $fields, $parent)
     {
-        if (is_array($objects) || $objects instanceof \Traversable || $objects instanceof \ArrayAccess) {
+        if (is_iterable($objects) || $objects instanceof \ArrayAccess) {
             $documents = [];
             foreach ($objects as $object) {
                 $document = $this->transform($object, $fields);
@@ -187,11 +175,9 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
     /**
      * Attempts to convert any type to a string or an array of strings.
      *
-     * @param mixed $value
      *
-     * @return string|array
      */
-    protected function normalizeValue($value)
+    protected function normalizeValue(mixed $value): string|array
     {
         $normalizeValue = function (&$v) {
             if ($v instanceof \DateTime) {
@@ -201,7 +187,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
             }
         };
 
-        if (is_array($value) || $value instanceof \Traversable || $value instanceof \ArrayAccess) {
+        if (is_iterable($value) || $value instanceof \ArrayAccess) {
             $value = is_array($value) ? $value : iterator_to_array($value);
             array_walk_recursive($value, $normalizeValue);
         } else {

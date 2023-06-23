@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Networking\ElasticSearchBundle\Controller;
 
 use Elastica\Aggregation\Missing;
@@ -31,16 +33,6 @@ class DefaultController extends FrontendPageController
     protected $index;
 
     /**
-     * @var string
-     */
-    protected $baseTemplate;
-
-    /**
-     * @var string
-     */
-    protected $searchTemplate;
-
-    /**
      * @var PaginatorInterface
      */
     protected $paginator;
@@ -64,6 +56,8 @@ class DefaultController extends FrontendPageController
      * @param KernelInterface $kernel
      * @param $baseTemplate
      * @param $searchTemplate
+     * @param string $baseTemplate
+     * @param string $searchTemplate
      */
     public function __construct(
         PageCacheInterface $pageCache,
@@ -76,8 +70,8 @@ class DefaultController extends FrontendPageController
         Index $index,
         PaginatorInterface $paginator,
         KernelInterface $kernel,
-        $baseTemplate,
-        $searchTemplate
+        protected $baseTemplate,
+        protected $searchTemplate
     ) {
         parent::__construct(
             $pageCache,
@@ -92,8 +86,6 @@ class DefaultController extends FrontendPageController
         $this->paginator = $paginator;
         $this->pageHelper = $pageHelper;
         $this->index = $index;
-        $this->baseTemplate = $baseTemplate;
-        $this->searchTemplate = $searchTemplate;
 
     }
 
@@ -102,8 +94,6 @@ class DefaultController extends FrontendPageController
     }
 
     /**
-     * @param Request $request
-     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function search(Request $request)
@@ -112,7 +102,7 @@ class DefaultController extends FrontendPageController
         try {
             $request = $this->getPageHelper()->matchContentRouteRequest($request);
             $params = $this->getPageParameters($request);
-        } catch (ResourceNotFoundException $e) {
+        } catch (ResourceNotFoundException) {
         }
 
         $template = $request->get('_template', $this->searchTemplate);

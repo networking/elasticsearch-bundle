@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Networking\ElasticSearchBundle\Transformer;
 
 /*
@@ -102,7 +104,7 @@ class Pdf2Text
             $currentObject = $objects[$i];
 
             // Check if an object includes data stream.
-            if (preg_match("#stream[\n|\r](.*)endstream[\n|\r]#ismU", $currentObject, $stream)) {
+            if (preg_match("#stream[\n|\r](.*)endstream[\n|\r]#ismU", (string) $currentObject, $stream)) {
                 $stream = ltrim($stream[1]);
 
                 // Check object parameters and look for text data.
@@ -118,8 +120,8 @@ class Pdf2Text
                 // So, we have text data. Decode it.
                 $data = $this->getDecodedStream($stream, $options);
 
-                if (strlen($data)) {
-                    if (preg_match_all("#BT[\n|\r](.*)ET[\n|\r]#ismU", $data, $textContainers)) {
+                if (strlen((string) $data)) {
+                    if (preg_match_all("#BT[\n|\r](.*)ET[\n|\r]#ismU", (string) $data, $textContainers)) {
                         $textContainers = @$textContainers[1];
                         $this->getDirtyTexts($texts, $textContainers);
                     } else {
@@ -140,7 +142,7 @@ class Pdf2Text
         $isOdd = true;
         $isComment = false;
 
-        for ($i = 0, $codeHigh = -1; $i < strlen($input) && $input[$i] != '>'; ++$i) {
+        for ($i = 0, $codeHigh = -1; $i < strlen((string) $input) && $input[$i] != '>'; ++$i) {
             $c = $input[$i];
 
             if ($isComment) {
@@ -157,7 +159,7 @@ class Pdf2Text
                 break;
 
                 default:
-                    $code = hexdec($c);
+                    $code = hexdec((string) $c);
                     if ($code === 0 && $c != '0') {
                         return '';
                     }
@@ -191,7 +193,7 @@ class Pdf2Text
         $isComment = false;
         $ords = [];
 
-        for ($i = 0, $state = 0; $i < strlen($input) && $input[$i] != '~'; ++$i) {
+        for ($i = 0, $state = 0; $i < strlen((string) $input) && $input[$i] != '~'; ++$i) {
             $c = $input[$i];
 
             if ($isComment) {
@@ -233,7 +235,7 @@ class Pdf2Text
             return '';
         } elseif ($state > 1) {
             for ($i = 0, $sum = 0; $i < $state; ++$i) {
-                $sum += ($ords[$i] + ($i == $state - 1)) * pow(85, 4 - $i);
+                $sum += ($ords[$i] + ($i == $state - 1)) * 85 ** (4 - $i);
             }
             for ($i = 0; $i < $state - 1; ++$i) {
                 $output .= chr($sum >> ((3 - $i) * 8));
@@ -243,7 +245,7 @@ class Pdf2Text
         return $output;
     }
 
-    public function decodeFlate($input)
+    public function decodeFlate($input): string|bool
     {
         return gzuncompress($input);
     }
@@ -252,14 +254,14 @@ class Pdf2Text
     {
         $options = [];
 
-        if (preg_match('#<<(.*)>>#ismU', $object, $options)) {
+        if (preg_match('#<<(.*)>>#ismU', (string) $object, $options)) {
             $options = explode('/', $options[1]);
             @array_shift($options);
 
             $o = [];
             for ($j = 0; $j < @count($options); ++$j) {
                 $options[$j] = preg_replace("#\s+#", ' ', trim($options[$j]));
-                if (strpos($options[$j], ' ') !== false) {
+                if (str_contains($options[$j], ' ')) {
                     $parts = explode(' ', $options[$j]);
                     $o[$parts[0]] = $parts[1];
                 } else {
@@ -279,8 +281,8 @@ class Pdf2Text
         if (empty($options['Filter'])) {
             $data = $stream;
         } else {
-            $length = !empty($options['Length']) ? $options['Length'] : strlen($stream);
-            $_stream = substr($stream, 0, $length);
+            $length = !empty($options['Length']) ? $options['Length'] : strlen((string) $stream);
+            $_stream = substr((string) $stream, 0, $length);
 
             foreach ($options as $key => $value) {
                 if ($key == 'ASCIIHexDecode') {
@@ -302,20 +304,20 @@ class Pdf2Text
     }
     public function getDirtyTexts(&$texts, $textContainers)
     {
-        for ($j = 0; $j < count($textContainers); ++$j) {
-            if (preg_match_all("#\[(.*)\]\s*TJ[\n|\r]#ismU", $textContainers[$j], $parts)) {
+        for ($j = 0; $j < (is_countable($textContainers) ? count($textContainers) : 0); ++$j) {
+            if (preg_match_all("#\[(.*)\]\s*TJ[\n|\r]#ismU", (string) $textContainers[$j], $parts)) {
                 $texts = array_merge($texts, @$parts[1]);
-            } elseif (preg_match_all("#T[d|w|m|f]\s*(\(.*\))\s*Tj[\n|\r]#ismU", $textContainers[$j], $parts)) {
+            } elseif (preg_match_all("#T[d|w|m|f]\s*(\(.*\))\s*Tj[\n|\r]#ismU", (string) $textContainers[$j], $parts)) {
                 $texts = array_merge($texts, @$parts[1]);
-            } elseif (preg_match_all("#T[d|w|m|f]\s*(\[.*\])\s*Tj[\n|\r]#ismU", $textContainers[$j], $parts)) {
+            } elseif (preg_match_all("#T[d|w|m|f]\s*(\[.*\])\s*Tj[\n|\r]#ismU", (string) $textContainers[$j], $parts)) {
                 $texts = array_merge($texts, @$parts[1]);
             }
         }
     }
     public function getCharTransformations(&$transformations, $stream)
     {
-        preg_match_all("#([0-9]+)\s+beginbfchar(.*)endbfchar#ismU", $stream, $chars, PREG_SET_ORDER);
-        preg_match_all("#([0-9]+)\s+beginbfrange(.*)endbfrange#ismU", $stream, $ranges, PREG_SET_ORDER);
+        preg_match_all("#([0-9]+)\s+beginbfchar(.*)endbfchar#ismU", (string) $stream, $chars, PREG_SET_ORDER);
+        preg_match_all("#([0-9]+)\s+beginbfrange(.*)endbfrange#ismU", (string) $stream, $ranges, PREG_SET_ORDER);
 
         for ($j = 0; $j < count($chars); ++$j) {
             $count = $chars[$j][1];
@@ -343,7 +345,7 @@ class Pdf2Text
                     $to = hexdec($map[2]);
                     $parts = preg_split("#\s+#", trim($map[3]));
 
-                    for ($m = $from, $n = 0; $m <= $to && $n < count($parts); $m++, $n++) {
+                    for ($m = $from, $n = 0; $m <= $to && $n < (is_countable($parts) ? count($parts) : 0); $m++, $n++) {
                         $transformations[sprintf('%04X', $m)] = sprintf('%04X', hexdec($parts[$n]));
                     }
                 }
@@ -353,13 +355,13 @@ class Pdf2Text
     public function getTextUsingTransformations($texts, $transformations)
     {
         $document = '';
-        for ($i = 0; $i < count($texts); ++$i) {
+        for ($i = 0; $i < (is_countable($texts) ? count($texts) : 0); ++$i) {
             $isHex = false;
             $isPlain = false;
 
             $hex = '';
             $plain = '';
-            for ($j = 0; $j < strlen($texts[$i]); ++$j) {
+            for ($j = 0; $j < strlen((string) $texts[$i]); ++$j) {
                 $c = $texts[$i][$j];
                 switch ($c) {
                     case '<':
@@ -400,7 +402,7 @@ class Pdf2Text
                         } elseif ($c2 == 'f') {
                             $plain .= '\f';
                         } elseif ($c2 >= '0' && $c2 <= '9') {
-                            $oct = preg_replace('#[^0-9]#', '', substr($texts[$i], $j + 1, 3));
+                            $oct = preg_replace('#[^0-9]#', '', substr((string) $texts[$i], $j + 1, 3));
                             $j += strlen($oct) - 1;
                             $plain .= html_entity_decode('&#'.octdec($oct).';', $this->convertquotes);
                         }

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Created by PhpStorm.
  * User: yorkie
@@ -15,10 +18,7 @@ use Elastica\Query\BoolQuery as BaseQuery;
  */
 class BoolQuery extends BaseQuery implements \Countable {
 
-	/**
-	 * @return int
-	 */
-	public function count(){
+	public function count(): int{
 
 		return count($this->toArray());
 	}

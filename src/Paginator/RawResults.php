@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * This file is part of the forel package.
  *
@@ -7,8 +10,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-
 namespace Networking\ElasticSearchBundle\Paginator;
 
 use Networking\ElasticSearchBundle\Elastica\MultiIndex;
@@ -70,7 +71,7 @@ class RawResults extends RawPartialResults implements \Countable, \Iterator
      *
      * @return int Size of set
      */
-    public function count()
+    public function count(): int
     {
         return sizeof($this->_results);
     }
@@ -80,7 +81,7 @@ class RawResults extends RawPartialResults implements \Countable, \Iterator
      *
      * @return \Elastica\Result|bool Set object or false if not valid (no more entries)
      */
-    public function current()
+    public function current(): mixed
     {
         if ($this->valid()) {
             return $this->_results[$this->key()];
@@ -92,11 +93,9 @@ class RawResults extends RawPartialResults implements \Countable, \Iterator
     /**
      * Sets pointer (current) to the next item of the set.
      */
-    public function next()
+    public function next(): void
     {
         ++$this->_position;
-
-        return $this->current();
     }
 
     /**
@@ -104,7 +103,7 @@ class RawResults extends RawPartialResults implements \Countable, \Iterator
      *
      * @return int Current position
      */
-    public function key()
+    public function key(): mixed
     {
         return $this->_position;
     }
@@ -114,7 +113,7 @@ class RawResults extends RawPartialResults implements \Countable, \Iterator
      *
      * @return bool True if object exists
      */
-    public function valid()
+    public function valid(): bool
     {
         return isset($this->_results[$this->key()]);
     }
@@ -122,19 +121,19 @@ class RawResults extends RawPartialResults implements \Countable, \Iterator
     /**
      * Resets position to 0, restarts iterator.
      */
-    public function rewind()
+    public function rewind(): void
     {
         $this->_position = 0;
     }
 
-    public function getType($name)
+    public function getType($name): string
     {
         if(!$this->index instanceof MultiIndex){
             return $name;
         }
         foreach ($this->index->getIndices() as $index){
-            if(strpos($name, $index) === 0){
-                return str_replace($this->index->getName(), '', $index);
+            if(str_starts_with((string) $name, (string) $index)){
+                return str_replace($this->index->getName(), '', (string) $index);
             }
         }
 
