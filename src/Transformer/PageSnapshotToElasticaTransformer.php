@@ -18,7 +18,6 @@ use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerInterface;
 use Networking\ElasticSearchBundle\Model\SearchableContentInterface;
-use Networking\FormGeneratorBundle\Entity\FormPageContent;
 use Networking\InitCmsBundle\Entity\PageSnapshot;
 use Networking\InitCmsBundle\Helper\PageHelper;
 use Networking\InitCmsBundle\Model\TextInterface;
@@ -75,35 +74,23 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
     public function transform(object $object, array $fields): Document
     {
         $content = [];
-        $page = $this->pageHelper->unserializePageSnapshotData($object, true);
-        foreach ($page->getLayoutBlock() as $layoutBlock) {
+        $page = $object->getPage();
 
+        foreach ($page->getLayoutBlocks() as $layoutBlock) {
 
-            $classImplements = class_implements($layoutBlock->getClassType());
-            $classHasMethod = method_exists($layoutBlock->getClassType(), 'getSearchableContent');
-            if(!array_key_exists(SearchableContentInterface::class, $classImplements) && !$classHasMethod){
-                continue;
+            $classImplements = class_implements($layoutBlock);
+
+            $classHasMethod = method_exists($layoutBlock, 'getSearchableContent');
+
+            if(array_key_exists(SearchableContentInterface::class, $classImplements) && $classHasMethod){
+                $content[] = html_entity_decode(string: (string) $layoutBlock->getSearchableContent(), encoding:  'UTF-8');
             }
 
-            $contentItem = $this->serializer->deserialize(
-                $layoutBlock->getSnapshotContent(),
-                $layoutBlock->getClassType(),
-                'json'
-            );
-
-           $content[] = html_entity_decode(string: (string) $contentItem->getSearchableContent(), encoding:  'UTF-8');
-
-            if($this->managerRegistry->getManagerForClass($contentItem::class)->contains($contentItem)){
-                $this->managerRegistry->getManagerForClass($contentItem::class)->refresh($contentItem);
-            }
         }
 
-
-        $identifierProperty = new PropertyPath($this->options['identifier']);
-
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
+        $identifierProperty = new PropertyPath($this->options['identifier']);
         $identifier = $propertyAccessor->getValue($page, $identifierProperty);
-
         $document = new Document((string) $identifier);
 
         foreach ($fields as $key => $mapping) {
@@ -136,10 +123,6 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
             }
         }
         $document->set('type', 'Page');
-
-        if($this->managerRegistry->getManagerForClass($page::class)->contains($page)){
-            $this->managerRegistry->getManagerForClass($page::class)->refresh($page);
-        }
 
         return $document;
     }
@@ -177,7 +160,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
      *
      *
      */
-    protected function normalizeValue(mixed $value): string|array
+    protected function normalizeValue(mixed $value): string|array|null
     {
         $normalizeValue = function (&$v) {
             if ($v instanceof \DateTime) {
