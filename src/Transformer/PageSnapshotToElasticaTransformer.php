@@ -15,8 +15,6 @@ namespace Networking\ElasticSearchBundle\Transformer;
 use Doctrine\Persistence\ManagerRegistry;
 use Elastica\Document;
 use FOS\ElasticaBundle\Transformer\ModelToElasticaTransformerInterface;
-use JMS\Serializer\Serializer;
-use JMS\Serializer\SerializerInterface;
 use Networking\ElasticSearchBundle\Model\SearchableContentInterface;
 use Networking\InitCmsBundle\Entity\PageSnapshot;
 use Networking\InitCmsBundle\Helper\PageHelper;
@@ -38,29 +36,12 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
         'identifier' => 'id',
     ];
 
-    /**
-     * @var Serializer
-     */
-    protected $serializer;
 
-    /**
-     * @var PageHelper
-     */
-    protected $pageHelper;
-
-    /**
-     * @var ManagerRegistry
-     */
-    protected $managerRegistry;
 
     public function __construct(
-        SerializerInterface $serializer,
-        PageHelper $pageHelper,
-        ManagerRegistry $managerRegistry
+        private readonly PageHelper $pageHelper,
+        private readonly ManagerRegistry $managerRegistry
     ) {
-        $this->serializer = $serializer;
-        $this->pageHelper = $pageHelper;
-        $this->managerRegistry = $managerRegistry;
     }
 
     /**
