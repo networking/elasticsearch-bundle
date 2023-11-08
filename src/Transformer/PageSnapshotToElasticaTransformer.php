@@ -63,7 +63,7 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
 
             $classHasMethod = method_exists($layoutBlock, 'getSearchableContent');
 
-            if(array_key_exists(SearchableContentInterface::class, $classImplements) && $classHasMethod){
+            if(array_key_exists(SearchableContentInterface::class, $classImplements) || $classHasMethod){
                 $content[] = html_entity_decode(string: (string) $layoutBlock->getSearchableContent(), encoding:  'UTF-8');
             }
 
