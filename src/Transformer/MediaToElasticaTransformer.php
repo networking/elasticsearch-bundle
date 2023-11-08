@@ -70,7 +70,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
     {
         $propertyAccessor = new PropertyAccessor();
         $identifier = $propertyAccessor->getValue($object, $this->options['identifier']);
-        $document = new Document($identifier);
+        $document = new Document((string) $identifier);
 
         $provider = $this->pool->getProvider($object->getProviderName());
 
@@ -107,23 +107,23 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
                         }
 
                         if('application/pdf' == $object->getContentType()){
-	                        $value = PdfDocumentExtractor::extract($file);
+                            $value = PdfDocumentExtractor::extract($file);
                         }
 
                         if(str_ends_with($file, 'docx')){
-                        	$value = $this->readDocx($file);
+                            $value = $this->readDocx($file);
                         }
 
                         if(str_ends_with($file, 'doc')){
-                        	$value = $this->readDoc($file);
+                            $value = $this->readDoc($file);
                         }
 
                         if(str_ends_with($file, 'xlsx')){
-                        	$value = $this->readXlsx($file);
+                            $value = $this->readXlsx($file);
                         }
 
                         if(str_ends_with($file, 'xls')){
-                        	$value = $this->readXls($file);
+                            $value = $this->readXls($file);
                         }
 
                         if(!$value){
@@ -195,7 +195,7 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
      *
      *
      */
-    protected function normalizeValue(mixed $value): string|array
+    protected function normalizeValue(mixed $value): string|array|null
     {
         $normalizeValue = function (&$v) {
             if ($v instanceof \DateTime) {
@@ -215,103 +215,103 @@ class MediaToElasticaTransformer implements ModelToElasticaTransformerInterface
         return $value;
     }
 
-	/**
-	 * @param $file
-	 *
-	 * @return null|string|string[]
-	 */
-	protected function readDoc($file): null|string|array {
-		$fileHandle = fopen($file, "r");
-		$line = @fread($fileHandle, filesize($file));
-		$lines = explode(chr(0x0D),$line);
-		$outtext = "";
-		foreach($lines as $thisline)
-		{
-			$pos = strpos($thisline, chr(0x00));
-			if (($pos !== FALSE)||(strlen($thisline)==0))
-			{
-			} else {
-				$outtext .= $thisline." ";
-			}
-		}
-		$outtext = preg_replace("/[^a-zA-Z0-9\s\,\.\-\n\r\t@\/\_\(\)]/","",$outtext);
-		return $outtext;
-	}
+    /**
+     * @param $file
+     *
+     * @return null|string|string[]
+     */
+    protected function readDoc($file): null|string|array {
+        $fileHandle = fopen($file, "r");
+        $line = @fread($fileHandle, filesize($file));
+        $lines = explode(chr(0x0D),$line);
+        $outtext = "";
+        foreach($lines as $thisline)
+        {
+            $pos = strpos($thisline, chr(0x00));
+            if (($pos !== FALSE)||(strlen($thisline)==0))
+            {
+            } else {
+                $outtext .= $thisline." ";
+            }
+        }
+        $outtext = preg_replace("/[^a-zA-Z0-9\s\,\.\-\n\r\t@\/\_\(\)]/","",$outtext);
+        return $outtext;
+    }
 
-	/**
-  * @param $file
-  */
- protected function readDocx($file): bool|string{
+    /**
+     * @param $file
+     */
+    protected function readDocx($file): bool|string{
 
-		$content = '';
+        $content = '';
 
-		$zip = zip_open($file);
+        $zip = zip_open($file);
 
-		if (!$zip || is_numeric($zip)) return false;
+        if (!$zip || is_numeric($zip)) return false;
 
-		while ($zip_entry = zip_read($zip)) {
+        while ($zip_entry = zip_read($zip)) {
 
-			if (zip_entry_open($zip, $zip_entry) == FALSE) continue;
+            if (zip_entry_open($zip, $zip_entry) == FALSE) continue;
 
-			if (zip_entry_name($zip_entry) != "word/document.xml") continue;
+            if (zip_entry_name($zip_entry) != "word/document.xml") continue;
 
-			$content .= zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
+            $content .= zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
 
-			zip_entry_close($zip_entry);
-		}// end while
+            zip_entry_close($zip_entry);
+        }// end while
 
-		zip_close($zip);
+        zip_close($zip);
 
-		$content = str_replace('</w:r></w:p></w:tc><w:tc>', " ", $content);
-		$content = str_replace('</w:r></w:p>', "\r\n", $content);
-		$striped_content = strip_tags($content);
+        $content = str_replace('</w:r></w:p></w:tc><w:tc>', " ", $content);
+        $content = str_replace('</w:r></w:p>', "\r\n", $content);
+        $striped_content = strip_tags($content);
 
-		return $striped_content;
-	}
+        return $striped_content;
+    }
 
-	/**
-	 * @param $file
-	 *
-	 * @return string
-	 * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
-	 */
-	protected function readXlsx($file)
-	{
-		$reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-		return $this->readExcel($reader, $file);
+    /**
+     * @param $file
+     *
+     * @return string
+     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
+     */
+    protected function readXlsx($file)
+    {
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+        return $this->readExcel($reader, $file);
 
-	}
+    }
 
-	/**
-	 * @param $file
-	 *
-	 * @return string
-	 * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
-	 */
-	protected function readXls($file)
-	{
-		$reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
-		return $this->readExcel($reader, $file);
-	}
+    /**
+     * @param $file
+     *
+     * @return string
+     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
+     */
+    protected function readXls($file)
+    {
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
+        return $this->readExcel($reader, $file);
+    }
 
-	/**
-  * @param $file
-  *
-  * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
-  */
- protected function readExcel(BaseReader $reader, $file): string
-	{
-		$reader->setReadDataOnly(true);
-		$spreadsheet = $reader->load($file);
+    /**
+     * @param $file
+     *
+     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
+     */
+    protected function readExcel(BaseReader $reader, $file): string
+    {
+        $reader->setReadDataOnly(true);
+        $spreadsheet = $reader->load($file);
 
-		$data = [];
+        $data = [];
 
-		foreach ($spreadsheet->getAllSheets() as $sheet){
-			foreach ($sheet->toArray() as $row){
-				$data[] = implode(', ', $row);
-			}
-		}
+        foreach ($spreadsheet->getAllSheets() as $sheet){
+            foreach ($sheet->toArray() as $row){
+                $data[] = implode(', ', $row);
+            }
+        }
 
-		return implode(', ', $data);
-	}
+        return implode(', ', $data);
+    }
 }
