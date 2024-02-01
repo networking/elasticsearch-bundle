@@ -76,15 +76,26 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
         $content = [];
         $page = $object->getPage();
 
-        foreach ($page->getLayoutBlocks() as $layoutBlock) {
+        $page = $this->pageHelper->unserializePageSnapshotData($object, true);
+        foreach ($page->getLayoutBlock() as $layoutBlock) {
 
-            $classImplements = class_implements($layoutBlock);
-
-            $classHasMethod = method_exists($layoutBlock, 'getSearchableContent');
-
-            if(array_key_exists(SearchableContentInterface::class, $classImplements) || $classHasMethod){
-                $content[] = html_entity_decode(string: (string) $layoutBlock->getSearchableContent(), encoding:  'UTF-8');
+            $classImplements = class_implements($layoutBlock->getClassType());
+            $classHasMethod = method_exists($layoutBlock->getClassType(), 'getSearchableContent');
+            if(!array_key_exists(SearchableContentInterface::class, $classImplements) && !$classHasMethod){
+                continue;
             }
+
+            $contentItem = $this->serializer->deserialize(
+                $layoutBlock->getSnapshotContent(),
+                $layoutBlock->getClassType(),
+                'json'
+            );
+
+            if($this->managerRegistry->getManagerForClass($contentItem::class)->contains($contentItem)){
+                $this->managerRegistry->getManagerForClass($contentItem::class)->refresh($contentItem);
+            }
+
+            $content[] = html_entity_decode(string: (string) $contentItem->getSearchableContent(), encoding:  'UTF-8');
 
         }
 
