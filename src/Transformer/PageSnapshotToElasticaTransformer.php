@@ -135,6 +135,10 @@ class PageSnapshotToElasticaTransformer implements ModelToElasticaTransformerInt
         }
         $document->set('type', 'Page');
 
+        if($this->managerRegistry->getManagerForClass(get_class($page))->contains($page)){
+            $this->managerRegistry->getManagerForClass(get_class($page))->refresh($page);
+        }
+
         return $document;
     }
 
