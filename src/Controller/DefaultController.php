@@ -169,7 +169,7 @@ class DefaultController extends FrontendPageController
                 ]
             );
 
-            $currentPage = $request->query->get('page', 1);
+            $currentPage = $request->query->getInt('page', 1);
 
             $paginatorAdaptor = new \Networking\ElasticSearchBundle\Paginator\RawPaginatorAdapter($this->index, $query);
             /** @var \Knp\Bundle\PaginatorBundle\Pagination\SlidingPagination $pagePaginator */
