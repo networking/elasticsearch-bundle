@@ -77,10 +77,10 @@ class DefaultController extends FrontendPageController
             $pageCache,
             $tokenStorage,
             $authorizationChecker,
-            $pool,
             $languageSwitcherHelper,
             $pageManager,
-            $pageHelper
+            $pageHelper,
+            $pool,
         );
         $this->environment = $kernel->getEnvironment();
         $this->paginator = $paginator;
