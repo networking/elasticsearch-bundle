@@ -7,6 +7,7 @@ namespace Networking\ElasticSearchBundle\Finder;
 use Elastica\Query;
 use Elastica\ResultSet;
 use FOS\ElasticaBundle\Finder\TransformedFinder as FOSTransformedFinder;
+use FOS\ElasticaBundle\Paginator\PaginatorAdapterInterface;
 use Networking\ElasticSearchBundle\Paginator\RawPaginatorAdapter;
 use Networking\ElasticSearchBundle\Paginator\RawResults;
 
