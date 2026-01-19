@@ -7,6 +7,7 @@ namespace Networking\ElasticSearchBundle\Controller;
 use Elastica\Aggregation\Missing;
 use Elastica\Index;
 use Elastica\Query;
+use Elastica\Util;
 use FOS\ElasticaBundle\Paginator\RawPaginatorAdapter;
 use Networking\ElasticSearchBundle\Query\BoolQuery;
 use Networking\InitCmsBundle\Controller\FrontendPageController;
@@ -120,20 +121,21 @@ class DefaultController extends FrontendPageController
         $pagePaginator = false;
 
         if ($searchTerm) {
+            $escapedSearchTerm = Util::escapeTerm($searchTerm);
 
-            $keywordQuery = new Query\QueryString($searchTerm);
+            $keywordQuery = new Query\QueryString($escapedSearchTerm);
             $keywordQuery->setFields(['content'])
                 ->setAnalyzeWildcard(true)
                 ->setPhraseSlop(40);
 
-            $nameQuery = new Query\QueryString($searchTerm);
+            $nameQuery = new Query\QueryString($escapedSearchTerm);
             $nameQuery->setFields(['name'])
                 ->setAnalyzeWildcard(true)
                 ->setPhraseSlop(40)
                 ->setBoost(2.0);
 
 
-            $metaTitle = new Query\QueryString($searchTerm);
+            $metaTitle = new Query\QueryString($escapedSearchTerm);
             $metaTitle->setFields(['metaTitle'])
                 ->setAnalyzeWildcard(true)
                 ->setPhraseSlop(40);
